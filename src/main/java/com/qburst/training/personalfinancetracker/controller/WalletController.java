@@ -1,5 +1,7 @@
 package com.qburst.training.personalfinancetracker.controller;
 
+import com.qburst.training.personalfinancetracker.service.WalletService;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +20,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Wallet Management", description = "Create and manage digital wallets")
 public class WalletController {
 
+    public final WalletService walletService;
+
+    public WalletController(WalletService walletService){
+        this.walletService = walletService;
+    }
+
     @PostMapping
     @Operation(
             summary = "Create a wallet",
@@ -25,7 +33,7 @@ public class WalletController {
     )
 
     public ResponseEntity<String> createWallet(@RequestBody CreateWalletRequest request){
-        // TODO: Call WalletService.createWallet(request)
+        walletService.createWallet(request);
         return ResponseEntity.status(201).body("Wallet created successfully");
     }
 
@@ -33,7 +41,7 @@ public class WalletController {
     @Operation(summary = "Get wallet by ID")
 
     public ResponseEntity<String> getWalletById(@PathVariable Long id){
-        return ResponseEntity.ok("Wallet details for ID:" + id);
+        return ResponseEntity.ok(walletService.getWalletById(id));
 
     }
 
@@ -41,7 +49,7 @@ public class WalletController {
     @Operation(summary = "Get all wallets for a user")
 
     public ResponseEntity<String> getWalletsByUser(@PathVariable Long userId){
-        return ResponseEntity.ok("All wallets for user ID: "  + userId);
+        return ResponseEntity.ok(walletService.getWalletsByUser(userId));
     }
 
 

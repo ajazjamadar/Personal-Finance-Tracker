@@ -1,14 +1,11 @@
-# I am using a lightweight java 17/21 alpine image
-FROM eclipse-temurin:21-jdk-alpine
-
-# Setting up the working directory inside the container
+FROM eclipse-temurin:21-jdk-alpine AS builder
 WORKDIR /app
+COPY . .
+RUN ./mvnw clean package -DskipTests
 
-# Copy the compiled jar file into the container
-COPY target/*.jar app.jar
 
-# Expose port 8080
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8080
-
-# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

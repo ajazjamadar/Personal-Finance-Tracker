@@ -5,10 +5,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 
 @Schema(description = "Request body for creating a bank account")
-public class CreatingBankAccountRequest {
+public class CreateBankAccountRequest {
 
     @Schema(description = "ID of the user who owns the account", example = "1")
-    private Long usedId;
+    private Long userId;
 
     @Schema(description = "Name of the Bank", example = "SBI bank")
     private String bankName;
@@ -19,12 +19,12 @@ public class CreatingBankAccountRequest {
     @Schema(description = "Initial deposit amount", example = "50000.00")
     private BigDecimal initialBalance;
 
-    public Long getUsedId() {
-        return usedId;
+    public Long getUserId() {
+        return getUserId();
     }
 
-    public void setUsedId(Long usedId) {
-        this.usedId = usedId;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getBankName() {
