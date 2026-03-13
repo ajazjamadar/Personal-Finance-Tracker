@@ -1,10 +1,14 @@
 package com.qburst.training.personalfinancetracker.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Schema(description = "Request body for recording a transaction (income or expense)")
+@Getter
+@Setter
 public class TransactionRequest {
 
     @Schema(description = "Wallet ID (for wallet transaction)", example = "101")
@@ -22,43 +26,4 @@ public class TransactionRequest {
     @Schema(description = "Transaction note or description", example = "Dinner at Restaurent")
     private String description;
 
-    public Long getWalletId() {
-        return walletId;
-    }
-
-    public void setWalletId(Long walletId) {
-        this.walletId = walletId;
-    }
-
-    public Long getBankAccountId() {
-        return bankAccountId;
-    }
-
-    public void setBankAccountId(Long bankAccountId) {
-        this.bankAccountId = bankAccountId;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }

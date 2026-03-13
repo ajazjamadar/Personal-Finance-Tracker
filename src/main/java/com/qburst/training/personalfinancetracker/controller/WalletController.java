@@ -1,7 +1,5 @@
 package com.qburst.training.personalfinancetracker.controller;
 
-import com.qburst.training.personalfinancetracker.service.WalletService;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.qburst.training.personalfinancetracker.dto.CreateWalletRequest;
+import com.qburst.training.personalfinancetracker.service.WalletService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,10 +19,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Wallet Management", description = "Create and manage digital wallets")
 public class WalletController {
 
-    public final WalletService walletService;
+    private final WalletService walletService;
 
     public WalletController(WalletService walletService){
-        this.walletService = walletService;
+        this.walletService=walletService;
     }
 
     @PostMapping
@@ -38,6 +37,7 @@ public class WalletController {
     }
 
     @GetMapping("/{id}")
+    
     @Operation(summary = "Get wallet by ID")
 
     public ResponseEntity<String> getWalletById(@PathVariable Long id){

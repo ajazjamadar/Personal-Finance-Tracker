@@ -1,10 +1,14 @@
 package com.qburst.training.personalfinancetracker.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Schema(description = "Request body for creating a bank account")
+@Getter
+@Setter
 public class CreateBankAccountRequest {
 
     @Schema(description = "ID of the user who owns the account", example = "1")
@@ -18,36 +22,4 @@ public class CreateBankAccountRequest {
 
     @Schema(description = "Initial deposit amount", example = "50000.00")
     private BigDecimal initialBalance;
-
-    public Long getUserId() {
-        return getUserId();
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public String getBankName() {
-        return bankName;
-    }
-
-    public void setBankName(String bankName) {
-        this.bankName = bankName;
-    }
-
-    public String getAccountNumber() {
-        return accountNumber;
-    }
-
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
-    }
-
-    public BigDecimal getInitialBalance() {
-        return initialBalance;
-    }
-
-    public void setInitialBalance(BigDecimal initialBalance) {
-        this.initialBalance = initialBalance;
-    }
 }
