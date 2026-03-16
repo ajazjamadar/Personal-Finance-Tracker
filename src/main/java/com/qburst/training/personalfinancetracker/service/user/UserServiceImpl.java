@@ -1,4 +1,4 @@
-package com.qburst.training.personalfinancetracker.service;
+package com.qburst.training.personalfinancetracker.service.user;
 
 import com.qburst.training.personalfinancetracker.dto.UserDto;
 import com.qburst.training.personalfinancetracker.entity.User;

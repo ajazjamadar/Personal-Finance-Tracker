@@ -1,41 +1,39 @@
 package com.qburst.training.personalfinancetracker.controller;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.qburst.training.personalfinancetracker.dto.TransferRequest;
-
+import com.qburst.training.personalfinancetracker.dto.TransactionResponse;
+import com.qburst.training.personalfinancetracker.service.transfer.TransferService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/transfers")
 @Tag(name = "Transfers", description = "Fund transfers between bank accounts and wallets")
 public class TransferController {
 
-    @PostMapping("/bank-to-wallet")
-    @Operation(
-            summary = "Transfer: Bank to Wallet",
-            description = "Transfers funds from a bank account to a wallet. Bank balance decreases, wallet balance increases. Accepts: bankAccountId, walletId, amount"
-    )
+    private final TransferService transferService;
 
-    public ResponseEntity<String> bankToWallet(@RequestBody TransferRequest request){
-        // TODO: Call TransferService.bankToWallet(request)
-        return ResponseEntity.status(201).body("Bank to wallet transfer successful.");
+    public TransferController(TransferService transferService) {
+        this.transferService = transferService;
+    }
+
+    @PostMapping("/bank-to-wallet")
+    @Operation(summary = "Transfer from bank account to wallet")
+    public ResponseEntity<TransactionResponse> bankToWallet(
+            @Valid @RequestBody TransferRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(transferService.bankToWallet(request));
     }
 
     @PostMapping("/wallet-to-bank")
-    @Operation(
-            summary = "Transfer: Wallet",
-            description = "Transfers funds from a wallet back to a bank account. Wallet balance decreases, bank balance increases."
-    )
-
-    public ResponseEntity<String> walletToBank(@RequestBody TransferRequest request){
-        // TODO: Call TransferService.walletToBank(request)
-        return ResponseEntity.status(201).body("Wallet to bank transfer successful.");
+    @Operation(summary = "Transfer from wallet to bank account")
+    public ResponseEntity<TransactionResponse> walletToBank(
+            @Valid @RequestBody TransferRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(transferService.walletToBank(request));
     }
-
 }

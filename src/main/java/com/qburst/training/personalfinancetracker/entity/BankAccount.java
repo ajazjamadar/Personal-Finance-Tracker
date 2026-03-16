@@ -1,11 +1,7 @@
 package com.qburst.training.personalfinancetracker.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -25,14 +21,15 @@ public class BankAccount {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "bank_name", nullable = false, length = 100)
-    private String bankName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bank_id", nullable = false)
+    private Bank bank;
 
     @Column(name = "account_number", unique = true, length = 50)
     private String accountNumber;
 
     @Column(name = "balance", precision = 15, scale = 2)
-    private BigDecimal balance = BigDecimal.ZERO;
+    private BigDecimal balance;
 
     @Version
     private Long version;
@@ -41,8 +38,8 @@ public class BankAccount {
     private LocalDateTime createdAt;
 
     @PrePersist
-    protected void onCreate(){
+    protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (balance == null)  balance = BigDecimal.ZERO;
+        if (balance == null) balance = BigDecimal.ZERO;
     }
 }

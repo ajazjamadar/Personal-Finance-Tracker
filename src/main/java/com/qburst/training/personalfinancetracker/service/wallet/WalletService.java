@@ -1,4 +1,4 @@
-package com.qburst.training.personalfinancetracker.service;
+package com.qburst.training.personalfinancetracker.service.wallet;
 
 import com.qburst.training.personalfinancetracker.dto.WalletDto;
 import java.util.List;

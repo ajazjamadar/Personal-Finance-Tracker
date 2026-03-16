@@ -1,4 +1,4 @@
-package com.qburst.training.personalfinancetracker.service;
+package com.qburst.training.personalfinancetracker.service.transaction;
 
 import com.qburst.training.personalfinancetracker.dto.TransactionDto;
 import java.util.List;

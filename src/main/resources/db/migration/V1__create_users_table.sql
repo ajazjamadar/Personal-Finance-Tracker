@@ -1,3 +1,4 @@
+-- noinspection SqlNoDataSourceInspectionForFile,SqlResolveForFile
 CREATE TABLE users (
                        id BIGINT PRIMARY KEY AUTO_INCREMENT,
                        username VARCHAR(100) UNIQUE NOT NULL,
