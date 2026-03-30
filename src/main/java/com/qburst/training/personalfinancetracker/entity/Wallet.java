@@ -1,25 +1,17 @@
 package com.qburst.training.personalfinancetracker.entity;
 
+import jakarta.persistence.*;
+import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
-
 @Entity
 @Table(name = "wallets")
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Wallet {
 
     @Id
@@ -30,18 +22,21 @@ public class Wallet {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "wallet_name", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String walletName;
 
-    @Column(name = "balance", precision = 15, scale = 2)
-    private BigDecimal balance = BigDecimal.ZERO;
+    @Column(precision = 15, scale = 2)
+    private BigDecimal balance;
 
-    @Column(name = "created_at", updatable = false)
+    @Version
+    private Long version;
+
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (balance==null) balance = BigDecimal.ZERO;
+        if (balance == null) balance = BigDecimal.ZERO;
     }
 }

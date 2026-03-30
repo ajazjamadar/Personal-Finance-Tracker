@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class TransactionDto {
-
         @Schema(name = "TransactionRequest")
     public record Request(
             Long walletId,
@@ -29,18 +28,5 @@ public class TransactionDto {
             BigDecimal amount,
             String description,
             LocalDateTime createdAt
-    ) {}
-
-    @Schema(name = "TransactionTransferRequest")
-    public record TransferRequest(
-            @NotNull(message = "Source ID is required")
-            Long sourceId,
-
-            @NotNull(message = "Destination ID is required")
-            Long destinationId,
-
-            @NotNull(message = "Amount is required")
-            @Positive(message = "Amount must be greater than zero")
-            BigDecimal amount
     ) {}
 }

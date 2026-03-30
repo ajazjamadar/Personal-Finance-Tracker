@@ -1,7 +1,6 @@
 package com.qburst.training.personalfinancetracker.service.transfer;
 
-import com.qburst.training.personalfinancetracker.dto.TransactionResponse;
-import com.qburst.training.personalfinancetracker.dto.TransferRequest;
+import com.qburst.training.personalfinancetracker.dto.TransferDto;
 import com.qburst.training.personalfinancetracker.entity.BankAccount;
 import com.qburst.training.personalfinancetracker.entity.Transaction;
 import com.qburst.training.personalfinancetracker.entity.Transaction.TransactionType;
@@ -32,7 +31,7 @@ public class TransferServiceImpl implements TransferService {
 
     @Override
     @Transactional
-    public TransactionResponse bankToWallet(TransferRequest request) {
+    public TransferDto.Response bankToWallet(TransferDto.Request request) {
         BankAccount bank = getBankAccount(request.sourceId());
         Wallet wallet = getWallet(request.destinationId());
 
@@ -56,7 +55,7 @@ public class TransferServiceImpl implements TransferService {
 
     @Override
     @Transactional
-    public TransactionResponse walletToBank(TransferRequest request) {
+    public TransferDto.Response walletToBank(TransferDto.Request request) {
         Wallet wallet = getWallet(request.sourceId());
         BankAccount bank = getBankAccount(request.destinationId());
 
@@ -102,8 +101,8 @@ public class TransferServiceImpl implements TransferService {
         }
     }
 
-    private TransactionResponse toResponse(Transaction tx) {
-        return new TransactionResponse(
+    private TransferDto.Response toResponse(Transaction tx) {
+        return new TransferDto.Response(
                 tx.getId(),
                 tx.getTransactionType().name(),
                 tx.getAmount(),

@@ -1,9 +1,8 @@
 package com.qburst.training.personalfinancetracker.service.transfer;
 
-import com.qburst.training.personalfinancetracker.dto.TransactionResponse;
-import com.qburst.training.personalfinancetracker.dto.TransferRequest;
+import com.qburst.training.personalfinancetracker.dto.TransferDto;
 
 public interface TransferService {
-    TransactionResponse bankToWallet(TransferRequest request);
-    TransactionResponse walletToBank(TransferRequest request);
+    TransferDto.Response bankToWallet(TransferDto.Request request);
+    TransferDto.Response walletToBank(TransferDto.Request request);
 }

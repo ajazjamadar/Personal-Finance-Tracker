@@ -2,6 +2,7 @@ package com.qburst.training.personalfinancetracker.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -25,16 +26,16 @@ public class BankAccount {
     @JoinColumn(name = "bank_id", nullable = false)
     private Bank bank;
 
-    @Column(name = "account_number", unique = true, length = 50)
+    @Column(unique = true, length = 50)
     private String accountNumber;
 
-    @Column(name = "balance", precision = 15, scale = 2)
+    @Column(precision = 15, scale = 2)
     private BigDecimal balance;
 
     @Version
     private Long version;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

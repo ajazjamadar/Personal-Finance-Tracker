@@ -11,7 +11,10 @@ import java.util.List;
 @Repository
 public interface BankAccountRepository extends JpaRepository<BankAccount, Long> {
     List<BankAccount> findByUserId(Long userId);
-    List<BankAccount> findByBankBankName(String bankName);
+    boolean existsByAccountNumber(String accountNumber);
+
+    @Query("SELECT b FROM BankAccount b WHERE b.bank.bankName = :bankName")
+    List<BankAccount> findByBankName(@Param("bankName") String bankName);
 
     @Query("SELECT b FROM BankAccount b WHERE b.user.fullName LIKE %:fullName%")
     List<BankAccount> findByUserFullName(@Param("fullName") String fullName);

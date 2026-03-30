@@ -1,7 +1,6 @@
 package com.qburst.training.personalfinancetracker.controller;
 
-import com.qburst.training.personalfinancetracker.dto.TransferRequest;
-import com.qburst.training.personalfinancetracker.dto.TransactionResponse;
+import com.qburst.training.personalfinancetracker.dto.TransferDto;
 import com.qburst.training.personalfinancetracker.service.transfer.TransferService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,16 +22,16 @@ public class TransferController {
 
     @PostMapping("/bank-to-wallet")
     @Operation(summary = "Transfer from bank account to wallet")
-    public ResponseEntity<TransactionResponse> bankToWallet(
-            @Valid @RequestBody TransferRequest request) {
+        public ResponseEntity<TransferDto.Response> bankToWallet(
+            @Valid @RequestBody TransferDto.Request request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(transferService.bankToWallet(request));
     }
 
     @PostMapping("/wallet-to-bank")
     @Operation(summary = "Transfer from wallet to bank account")
-    public ResponseEntity<TransactionResponse> walletToBank(
-            @Valid @RequestBody TransferRequest request) {
+        public ResponseEntity<TransferDto.Response> walletToBank(
+            @Valid @RequestBody TransferDto.Request request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(transferService.walletToBank(request));
     }
