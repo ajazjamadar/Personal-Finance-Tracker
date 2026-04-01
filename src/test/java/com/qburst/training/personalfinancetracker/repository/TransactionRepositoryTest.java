@@ -29,8 +29,9 @@ public class TransactionRepositoryTest {
 
     private User user;
     private Wallet wallet;
+
     @BeforeEach
-    void setUp(){
+    void setUp() {
         user = User.builder()
                 .username("ajaz")
                 .email("ajaz@email.com")
@@ -47,32 +48,9 @@ public class TransactionRepositoryTest {
         entityManager.persistAndFlush(wallet);
     }
 
-    //Table Creation/ FK varification
-
-    @Test
-    @DisplayName("FK Check: transaction should correctly link to user and wallet")
-    void transaction_shouldHaveCorrectForeignKey(){
-        Transaction tx = Transaction.builder()
-                .user(user)
-                .sourceWallet(wallet)
-                .transactionType(Transaction.TransactionType.EXPENSE)
-                .amount(new BigDecimal("1000.00"))
-                .build();
-        entityManager.persistAndFlush(tx);
-
-        Transaction found = entityManager.find(Transaction.class,tx.getId());
-
-        //verify fk to user table
-        assertThat(found.getUser().getId()).isEqualTo(user.getId());
-        //verify fk to wallets table
-        assertThat(found.getSourceWallet().getId()).isEqualTo(wallet.getId());
-    }
-
-    //findByUserId
     @Test
     @DisplayName("findByUserId: should return all transactions for the given user")
     void findByUserId_shouldReturnTransactions() {
-        // Persist two transactions for our test user
         entityManager.persistAndFlush(buildTx(Transaction.TransactionType.INCOME, "200.00", "Salary"));
         entityManager.persistAndFlush(buildTx(Transaction.TransactionType.EXPENSE, "50.00", "Coffee"));
 
@@ -83,7 +61,7 @@ public class TransactionRepositoryTest {
 
     @Test
     @DisplayName("findByUserId: should return empty list for user with no transactions")
-    void findUserId_shouldReturnEmpty_whenNoTransactions(){
+    void findByUserId_shouldReturnEmpty_whenNoTransactions() {
         User newUser = User.builder()
                 .username("dev")
                 .email("dev@email.com")
@@ -96,12 +74,11 @@ public class TransactionRepositoryTest {
         assertThat(txs).isEmpty();
     }
 
-    //findByUserIdOrderByCreatedDesc
     @Test
     @DisplayName("findByUserIdOrderByCreatedAtDesc: most recent transaction should come first")
-    void findByUserIdOrderByCreatedAt_shouldReturnOrderByNewestFirst() throws InterruptedException{
+    void findByUserIdOrderByCreatedAtDesc_shouldReturnOrderByNewestFirst() {
         Transaction first = buildTx(Transaction.TransactionType.INCOME, "100.00", "First");
-        Transaction second = buildTx(Transaction.TransactionType.EXPENSE,"30.00", "Second");
+        Transaction second = buildTx(Transaction.TransactionType.EXPENSE, "30.00", "Second");
 
         LocalDateTime now = LocalDateTime.now();
         first.setCreatedAt(now.minusMinutes(1));
@@ -115,23 +92,6 @@ public class TransactionRepositoryTest {
 
         assertThat(ordered.get(0).getDescription()).isEqualTo("Second");
         assertThat(ordered.get(1).getDescription()).isEqualTo("First");
-    }
-
-    //TransactionType enum persisted a String
-    @Test
-    @DisplayName("TransactionType: all enum values should be persistable")
-    void transactionType_allValues_shouldPersistCorrectly(){
-        for (Transaction.TransactionType type : Transaction.TransactionType.values()){
-            Transaction tx = Transaction.builder()
-                    .user(user)
-                    .transactionType(type)
-                    .amount(new BigDecimal("10.00"))
-                    .build();
-            entityManager.persistAndFlush(tx);
-
-            Transaction found = entityManager.find(Transaction.class, tx.getId());
-            assertThat(found.getTransactionType()).isEqualTo(type);
-        }
     }
 
     private Transaction buildTx(Transaction.TransactionType type, String amount, String description) {

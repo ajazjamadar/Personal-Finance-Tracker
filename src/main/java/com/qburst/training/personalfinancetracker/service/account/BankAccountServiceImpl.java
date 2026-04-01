@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.stream.StreamSupport;
 
 import java.util.List;
 
@@ -86,8 +87,10 @@ public class BankAccountServiceImpl implements BankAccountService {
             return bankAccountRepository.findByUserFullName(fullName)
                     .stream().map(this::toResponse).toList();
         }
-        return bankAccountRepository.findAll()
-                .stream().map(this::toResponse).toList();
+        List<BankAccount> all = (List<BankAccount>) bankAccountRepository.findAll();
+        return all.stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Override

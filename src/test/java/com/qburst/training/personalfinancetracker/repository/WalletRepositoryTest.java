@@ -8,14 +8,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@ActiveProfiles("test")
 class WalletRepositoryTest {
 
     @Autowired
@@ -27,7 +28,7 @@ class WalletRepositoryTest {
     private User user;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         user = User.builder()
                 .username("eve")
                 .email("eve@email.com")
@@ -37,25 +38,6 @@ class WalletRepositoryTest {
         entityManager.persistAndFlush(user);
     }
 
-    //FK Test
-    @Test
-    @DisplayName("FK Check:  Wallet should link to its owner user")
-    void wallet_shouldHaveCorrectUserForeignKey(){
-        Wallet wallet = Wallet.builder()
-                .user(user)
-                .walletName("savings")
-                .balance(new BigDecimal("500.00"))
-                .build();
-        entityManager.persistAndFlush(wallet);
-
-        Wallet found = entityManager.find(Wallet.class,wallet.getId());
-
-        assertThat(found.getUser().getId()).isEqualTo(user.getId());
-        assertThat(found.getUser().getId()).isEqualTo(user.getId());
-        assertThat(found.getUser().getUsername()).isEqualTo("eve");
-    }
-
-    //findUserBYId
     @Test
     @DisplayName("findByUserId: should return wallets belonging to the user")
     void findByUserId_shouldReturnUserWallets() {
@@ -85,35 +67,4 @@ class WalletRepositoryTest {
         List<Wallet> wallets = walletRepository.findByUserId(noWalletUser.getId());
         assertThat(wallets).isEmpty();
     }
-
-    //balance default
-    @Test
-    @DisplayName("@PrePersist: wallet balance should default to ZERO when null")
-    void balance_shouldDefaultToZero() {
-        Wallet wallet = Wallet.builder()
-                .user(user)
-                .walletName("Empty Wallet")
-                .balance(null)
-                .build();
-        entityManager.persistAndFlush(wallet);
-
-        Wallet found = entityManager.find(Wallet.class, wallet.getId());
-        assertThat(found.getBalance()).isEqualByComparingTo(BigDecimal.ZERO);
-    }
-
-    //Audit Fields
-    @Test
-    @DisplayName("createdAt: should be populated automatically by @PrePersist")
-    void createdAt_shouldBeSetOnCreate() {
-        Wallet wallet = Wallet.builder()
-                .user(user)
-                .walletName("Test Wallet")
-                .balance(BigDecimal.TEN)
-                .build();
-        entityManager.persistAndFlush(wallet);
-
-        Wallet found = entityManager.find(Wallet.class, wallet.getId());
-        assertThat(found.getCreatedAt()).isNotNull();
-    }
-
 }

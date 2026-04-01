@@ -57,7 +57,9 @@ public class Transaction {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
     }
 
     public enum TransactionType {

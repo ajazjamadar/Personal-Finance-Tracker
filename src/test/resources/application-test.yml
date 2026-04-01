@@ -1,20 +1,25 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:finance_test;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:file:./target/testdb/finance_test;MODE=MySQL;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password:
+
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none            # Flyway owns the schema for tests
     show-sql: false
     database-platform: org.hibernate.dialect.H2Dialect
     properties:
       hibernate:
         format_sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:/db/test-migration
+    baseline-on-migrate: true
+
   sql:
     init:
       mode: never
-  flyway:
-    enabled: false
-    locations: "classpath:/db/does_not_exist"  # Prevent Flyway from finding and running migrations
+

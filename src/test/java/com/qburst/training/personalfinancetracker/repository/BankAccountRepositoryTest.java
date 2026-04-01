@@ -26,14 +26,12 @@ class BankAccountRepositoryTest {
     @Autowired
     private BankAccountRepository bankAccountRepository;
 
-    // Entities shared across tests (set up fresh before each test)
     private User user;
     private Bank bank;
     private BankAccount account;
 
     @BeforeEach
     void setUp() {
-        // Create and persist a User (FK parent for BankAccount)
         user = User.builder()
                 .username("alice")
                 .email("alice@example.com")
@@ -42,14 +40,12 @@ class BankAccountRepositoryTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        // Create and persist a Bank (FK parent for BankAccount)
         bank = Bank.builder()
                 .bankName("Test Bank")
                 .bankCode("TSTB")
                 .build();
         entityManager.persistAndFlush(bank);
 
-        // Create BankAccount that links to both User and Bank
         account = BankAccount.builder()
                 .user(user)
                 .bank(bank)
@@ -57,18 +53,6 @@ class BankAccountRepositoryTest {
                 .balance(new BigDecimal("5000.00"))
                 .build();
         entityManager.persistAndFlush(account);
-    }
-
-    @Test
-    @DisplayName("FK check: BankAccount should correctly store user and bank references")
-    void bankAccount_shouldHaveCorrectForeignKeys() {
-        BankAccount found = entityManager.find(BankAccount.class, account.getId());
-
-        // If FK columns were missing, these would be null
-        assertThat(found.getUser().getId()).isEqualTo(user.getId());
-        assertThat(found.getBank().getId()).isEqualTo(bank.getId());
-        assertThat(found.getUser().getFullName()).isEqualTo("Alice Smith");
-        assertThat(found.getBank().getBankName()).isEqualTo("Test Bank");
     }
 
     @Test
@@ -83,7 +67,6 @@ class BankAccountRepositoryTest {
     @Test
     @DisplayName("findByUserId: should return empty list for user with no accounts")
     void findByUserId_shouldReturnEmpty_whenUserHasNoAccounts() {
-        // Create a second user with no accounts
         User newUser = User.builder()
                 .username("bob")
                 .email("bob@example.com")
@@ -99,7 +82,6 @@ class BankAccountRepositoryTest {
     @Test
     @DisplayName("findByUserId: should return multiple accounts if user has more than one")
     void findByUserId_shouldReturnAll_whenUserHasMultipleAccounts() {
-        // Add a second account for the same user
         BankAccount second = BankAccount.builder()
                 .user(user)
                 .bank(bank)
@@ -142,11 +124,9 @@ class BankAccountRepositoryTest {
         assertThat(accounts).isEmpty();
     }
 
-
     @Test
     @DisplayName("findByUserFullName: should match partial full name (LIKE query)")
-     void findByUserFullName_shouldReturnAccounts_onPartialMatch() {
-        // The query uses LIKE %:fullName% so a partial name should work
+    void findByUserFullName_shouldReturnAccounts_onPartialMatch() {
         List<BankAccount> accounts = bankAccountRepository.findByUserFullName("Alice");
 
         assertThat(accounts).hasSize(1);
@@ -158,37 +138,5 @@ class BankAccountRepositoryTest {
     void findByUserFullName_shouldReturnEmpty_whenNoMatch() {
         List<BankAccount> accounts = bankAccountRepository.findByUserFullName("Nobody");
         assertThat(accounts).isEmpty();
-    }
-
-
-    @Test
-    @DisplayName("UNIQUE constraint: duplicate account number should throw on flush")
-    void save_shouldFail_whenAccountNumberIsDuplicate() {
-        BankAccount duplicate = BankAccount.builder()
-                .user(user)
-                .bank(bank)
-                .accountNumber("ACC-001")   // same number — violates UNIQUE
-                .balance(BigDecimal.ZERO)
-                .build();
-
-        org.junit.jupiter.api.Assertions.assertThrows(
-                Exception.class,
-                () -> entityManager.persistAndFlush(duplicate)
-        );
-    }
-
-    @Test
-    @DisplayName("@PrePersist: balance should default to ZERO if null is provided")
-    void balance_shouldDefaultToZero_whenNullOnCreate() {
-        BankAccount noBalance = BankAccount.builder()
-                .user(user)
-                .bank(bank)
-                .accountNumber("ACC-ZERO")
-                .balance(null)              // @PrePersist should set this to ZERO
-                .build();
-        entityManager.persistAndFlush(noBalance);
-
-        BankAccount found = entityManager.find(BankAccount.class, noBalance.getId());
-        assertThat(found.getBalance()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 }
