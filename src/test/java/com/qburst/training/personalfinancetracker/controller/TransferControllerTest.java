@@ -91,7 +91,7 @@ class TransferControllerTest {
     }
 
     @Test
-    @DisplayName("POST /bank-to-wallet: should return 500 when bank has insufficient balance")
+    @DisplayName("POST /bank-to-wallet: should return 422 when bank has insufficient balance")
     void bankToWallet_shouldFail_whenInsufficientBalance() throws Exception {
         TransferDto.Request request = new TransferDto.Request(
                 bankAccount.getId(), wallet.getId(), new BigDecimal("99999.00"));
@@ -99,7 +99,7 @@ class TransferControllerTest {
         mockMvc.perform(post("/api/transfers/bank-to-wallet")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.error").exists());
     }
 
@@ -165,7 +165,7 @@ class TransferControllerTest {
     }
 
     @Test
-    @DisplayName("POST /wallet-to-bank: should return 500 when wallet has insufficient balance")
+    @DisplayName("POST /wallet-to-bank: should return 422 when wallet has insufficient balance")
     void walletToBank_shouldFail_whenInsufficientBalance() throws Exception {
         TransferDto.Request request = new TransferDto.Request(
                 wallet.getId(), bankAccount.getId(), new BigDecimal("99999.00"));
@@ -173,7 +173,7 @@ class TransferControllerTest {
         mockMvc.perform(post("/api/transfers/wallet-to-bank")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.error").exists());
     }
 

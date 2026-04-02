@@ -59,7 +59,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/users : should return 500 when email already exists")
+    @DisplayName("POST /api/users : should return 409 when email already exists")
     void createUser_shouldFail_whenEmailDuplicate() throws Exception {
         UserDto.Request request = new UserDto.Request(
                                 "another", "ejaz@email.com", "password123", "Another User");
@@ -67,7 +67,7 @@ class UserControllerTest {
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isConflict());
     }
 
         @Test

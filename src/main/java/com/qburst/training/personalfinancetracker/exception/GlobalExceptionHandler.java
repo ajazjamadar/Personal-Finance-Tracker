@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.qburst.training.personalfinancetracker.exception.DuplicateResourceException;
+import com.qburst.training.personalfinancetracker.exception.InsufficientBalanceException;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -57,6 +59,28 @@ public class GlobalExceptionHandler {
                 Map.of(
                         "error", ex.getMessage(),
                         "status", 400,
+                        "timestamp", LocalDateTime.now().toString()
+                )
+        );
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicate(DuplicateResourceException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of(
+                        "error", ex.getMessage(),
+                        "status", 409,
+                        "timestamp", LocalDateTime.now().toString()
+                )
+        );
+    }
+
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<Map<String, Object>> handleInsufficientBalance(InsufficientBalanceException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
+                Map.of(
+                        "error", ex.getMessage(),
+                        "status", 422,
                         "timestamp", LocalDateTime.now().toString()
                 )
         );

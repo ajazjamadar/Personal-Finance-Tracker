@@ -5,6 +5,7 @@ import com.qburst.training.personalfinancetracker.entity.User;
 import com.qburst.training.personalfinancetracker.exception.DuplicateResourceException;
 import com.qburst.training.personalfinancetracker.exception.ResourceNotFoundException;
 import com.qburst.training.personalfinancetracker.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,9 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -30,7 +33,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(request.username());
         user.setEmail(request.email());
-        user.setPasswordHash(request.password());
+        user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setFullName(request.fullName());
         return toResponse(userRepository.save(user));
     }

@@ -104,7 +104,7 @@ class TransactionControllerTest {
         mockMvc.perform(post("/api/transactions/expense")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test

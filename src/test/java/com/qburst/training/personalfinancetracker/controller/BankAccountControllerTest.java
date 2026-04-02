@@ -79,7 +79,7 @@ class BankAccountControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/bank-accounts: should return 500 when account number is duplicate")
+    @DisplayName("POST /api/bank-accounts: should return 409 when account number is duplicate")
     void createBankAccount_shouldFail_whenDuplicateAccountNumber() throws Exception {
         BankAccountDto.Request request = new BankAccountDto.Request(
                 user.getId(), "HDFC Bank", "ACC-001", new BigDecimal("1000.00"));
@@ -87,7 +87,7 @@ class BankAccountControllerTest {
         mockMvc.perform(post("/api/bank-accounts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isConflict());
     }
 
     @Test
