@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>FinTrack | Personal Finance Tracker</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+	<header class="site-header">
+		<div class="container header-row">
+			<a class="brand" href="#top">FinTrack</a>
+			<nav class="main-nav">
+				<a href="#features">Features</a>
+				<a href="#about">About</a>
+				<a href="#start">Get Started</a>
+			</nav>
+		</div>
+	</header>
+
+	<main id="top">
+		<section class="hero">
+			<div class="container hero-grid">
+				<div class="hero-copy">
+					<p class="kicker">Personal Finance Tracker</p>
+					<h1>Track spending, grow savings, and stay in control.</h1>
+					<p class="lead">
+						FinTrack helps you manage wallets, bank accounts, transactions, and reports in one place.
+						Start simple and build stronger financial habits with clear insights.
+					</p>
+					<div class="hero-actions" id="start">
+						<a class="btn btn-primary" href="users.html">Open Finance Workspace</a>
+						<a class="btn btn-secondary" href="dashboard.html">Open Unified Dashboard</a>
+					</div>
+				</div>
+
+				<div class="hero-visual" aria-hidden="true">
+					<img
+						src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1200&q=80"
+						alt="Financial planning workspace"
+					/>
+				</div>
+			</div>
+		</section>
+
+		<section class="features" id="features">
+			<div class="container cards">
+				<article class="card">
+					<h3>Unified Accounts</h3>
+					<p>Connect wallets and bank accounts to view your money in one consolidated dashboard.</p>
+				</article>
+				<article class="card">
+					<h3>Expense Intelligence</h3>
+					<p>Categorize transactions and quickly identify where your monthly budget goes.</p>
+				</article>
+				<article class="card">
+					<h3>Simple Reports</h3>
+					<p>Generate readable financial summaries that support better everyday decisions.</p>
+				</article>
+			</div>
+		</section>
+
+		<section class="about" id="about">
+			<div class="container about-grid">
+				<div>
+					<p class="kicker">About FinTrack</p>
+					<h2>A practical tool for daily financial clarity.</h2>
+					<p>
+						FinTrack was designed for people who want a straightforward, reliable way to monitor income,
+						expenses, and transfers. Whether you’re managing personal spending or family budgets, it keeps
+						your financial activity organized and easy to understand.
+					</p>
+				</div>
+				<div class="about-panel">
+					<h4>Why users choose FinTrack</h4>
+					<ul>
+						<li>Fast onboarding with clean workflow</li>
+						<li>Clear transaction visibility</li>
+						<li>Bank-to-wallet transfer support</li>
+						<li>Actionable report summaries</li>
+					</ul>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer class="site-footer">
+		<div class="container">
+			<p>© <span id="year"></span> FinTrack. All rights reserved.</p>
+			<div class="footer-extra">
+				<div class="footer-grid">
+					<div class="footer-panels">
+						<article class="footer-panel">
+							<h4>Start Smart</h4>
+							<p>Build a simple daily routine for tracking money movement and balances.</p>
+						</article>
+						<article class="footer-panel">
+							<h4>Plan Monthly</h4>
+							<p>Use summaries to prepare savings goals and avoid overspending early.</p>
+						</article>
+					</div>
+					<div class="footer-photo">
+						<img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&q=80" alt="Personal finance planning" />
+					</div>
+				</div>
+			</div>
+		</div>
+	</footer>
+
+	<script src="app.js"></script>
+</body>
+</html>

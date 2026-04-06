@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinTrack | Wallets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="users.html">FinTrack</a>
+      <nav class="main-nav">
+        <a href="users.html">Users</a>
+        <a href="accounts.html">Accounts</a>
+        <a class="active-link" href="wallets.html">Wallets</a>
+        <a href="transactions.html">Transactions</a>
+        <a href="transfers.html">Transfers</a>
+        <a href="reports.html">Reports</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <section class="dashboard-hero">
+      <div class="container">
+        <p class="kicker">Wallets Module</p>
+        <h1 id="welcomeTitle">Wallet Operations</h1>
+        <p class="lead">Create wallets and manage wallet-level queries.</p>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="container ops-grid two-col">
+        <article class="card op-card">
+          <h3>Create Wallet</h3>
+          <div class="form-grid">
+            <input id="w-userId" type="number" placeholder="User ID" />
+            <input id="w-walletName" placeholder="Wallet name" />
+            <input id="w-initialBalance" type="number" step="0.01" placeholder="Initial balance" />
+          </div>
+          <button class="btn btn-primary" data-action="create-wallet" type="button">Create Wallet</button>
+        </article>
+
+        <article class="card op-card">
+          <h3>Wallet Queries</h3>
+          <div class="form-grid">
+            <input id="w-id" type="number" placeholder="Wallet ID" />
+            <input id="w-user-list" type="number" placeholder="User ID for list" />
+            <input id="w-delete-id" type="number" placeholder="Delete Wallet ID" />
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" data-action="get-wallet" type="button">Get By ID</button>
+            <button class="btn btn-secondary" data-action="list-wallets" type="button">List By User</button>
+            <button class="btn btn-danger" data-action="delete-wallet" type="button">Delete</button>
+          </div>
+        </article>
+
+        <article class="card op-card result-card module-result">
+          <h3>Response</h3>
+          <p id="statusLine" class="status-line">Ready</p>
+          <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year"></span> FinTrack. All rights reserved.</p>
+      <div class="footer-extra">
+        <div class="footer-grid">
+          <div class="footer-panels">
+            <article class="footer-panel">
+              <h4>Wallet Tracking</h4>
+              <p>Monitor available wallet funds and keep daily spending under control.</p>
+            </article>
+            <article class="footer-panel">
+              <h4>Cash Visibility</h4>
+              <p>Use wallet history and balances to decide what you can spend now.</p>
+            </article>
+          </div>
+          <div class="footer-photo">
+            <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1200&q=80" alt="Wallet and cash budgeting" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

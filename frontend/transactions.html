@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinTrack | Transactions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="users.html">FinTrack</a>
+      <nav class="main-nav">
+        <a href="users.html">Users</a>
+        <a href="accounts.html">Accounts</a>
+        <a href="wallets.html">Wallets</a>
+        <a class="active-link" href="transactions.html">Transactions</a>
+        <a href="transfers.html">Transfers</a>
+        <a href="reports.html">Reports</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <section class="dashboard-hero">
+      <div class="container">
+        <p class="kicker">Transactions Module</p>
+        <h1 id="welcomeTitle">Transaction Management</h1>
+        <p class="lead">Record income, expenses, and withdrawals, then review transaction history.</p>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="container ops-grid two-col">
+        <article class="card op-card">
+          <h3>Record Income</h3>
+          <div class="form-grid single">
+            <input id="tx-income-walletId" type="number" placeholder="Income Wallet ID" />
+            <input id="tx-income-amount" type="number" step="0.01" placeholder="Income Amount" />
+            <input id="tx-income-category" placeholder="Income Category" />
+            <input id="tx-income-description" placeholder="Income Description" />
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" data-action="record-income" type="button">Record Income</button>
+          </div>
+        </article>
+
+        <article class="card op-card">
+          <h3>Add Expense</h3>
+          <div class="form-grid single">
+            <input id="tx-expense-walletId" type="number" placeholder="Expense Wallet ID" />
+            <input id="tx-expense-amount" type="number" step="0.01" placeholder="Expense Amount" />
+            <input id="tx-expense-category" placeholder="Expense Category" />
+            <input id="tx-expense-description" placeholder="Expense Description" />
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" data-action="record-expense" type="button">Add Expense</button>
+          </div>
+        </article>
+
+        <article class="card op-card">
+          <h3>ATM Withdrawal</h3>
+          <div class="form-grid single">
+            <input id="tx-atm-bankAccountId" type="number" placeholder="ATM Bank Account ID" />
+            <input id="tx-atm-amount" type="number" step="0.01" placeholder="ATM Amount" />
+            <input id="tx-atm-description" placeholder="ATM Description" />
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" data-action="record-atm" type="button">ATM Withdrawal</button>
+          </div>
+        </article>
+
+        <article class="card op-card">
+          <h3>Bank Expense</h3>
+          <div class="form-grid single">
+            <input id="tx-bankexp-bankAccountId" type="number" placeholder="Bank Expense Account ID" />
+            <input id="tx-bankexp-amount" type="number" step="0.01" placeholder="Bank Expense Amount" />
+            <input id="tx-bankexp-category" placeholder="Bank Expense Category" />
+            <input id="tx-bankexp-description" placeholder="Bank Expense Description" />
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" data-action="record-bank-expense" type="button">Bank Expense</button>
+          </div>
+        </article>
+
+        <article class="card op-card">
+          <h3>Transaction History</h3>
+          <div class="form-grid single">
+            <input id="tx-user-list" type="number" placeholder="User ID for history" />
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" data-action="list-transactions" type="button">Transaction History</button>
+          </div>
+        </article>
+
+        <article class="card op-card">
+          <h3>Get By ID</h3>
+          <div class="form-grid single">
+            <input id="tx-id" type="number" placeholder="Transaction ID" />
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" data-action="get-transaction" type="button">Get By ID</button>
+          </div>
+        </article>
+
+        <article class="card op-card result-card module-result">
+          <h3>Response</h3>
+          <p id="statusLine" class="status-line">Ready</p>
+          <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year"></span> FinTrack. All rights reserved.</p>
+      <div class="footer-extra">
+        <div class="footer-grid">
+          <div class="footer-panels">
+            <article class="footer-panel">
+              <h4>Transaction Log</h4>
+              <p>Record income and expenses with better clarity for each money movement.</p>
+            </article>
+            <article class="footer-panel">
+              <h4>History Review</h4>
+              <p>Audit transaction history quickly before generating monthly reports.</p>
+            </article>
+          </div>
+          <div class="footer-photo">
+            <img src="https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&w=1200&q=80" alt="Transaction records and receipt analysis" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

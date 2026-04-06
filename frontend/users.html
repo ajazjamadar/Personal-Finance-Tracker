@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinTrack | Users</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="users.html">FinTrack</a>
+      <nav class="main-nav">
+        <a class="active-link" href="users.html">Users</a>
+        <a href="accounts.html">Accounts</a>
+        <a href="wallets.html">Wallets</a>
+        <a href="transactions.html">Transactions</a>
+        <a href="transfers.html">Transfers</a>
+        <a href="reports.html">Reports</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <section class="dashboard-hero">
+      <div class="container">
+        <p class="kicker">Users Module</p>
+        <h1 id="welcomeTitle">User Management</h1>
+        <p class="lead">Create users and fetch user details from backend APIs.</p>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="container ops-grid two-col">
+        <article class="card op-card">
+          <h3>Create User</h3>
+          <div class="form-grid">
+            <input id="u-username" placeholder="Username" />
+            <input id="u-email" placeholder="Email" />
+            <input id="u-password" type="password" placeholder="Password" />
+            <input id="u-fullname" placeholder="Full name" />
+          </div>
+          <button class="btn btn-primary" data-action="create-user" type="button">Create User</button>
+        </article>
+
+        <article class="card op-card">
+          <h3>View Profile</h3>
+          <div class="form-grid single">
+            <input id="u-id" type="number" placeholder="User ID" />
+          </div>
+          <button class="btn btn-secondary" data-action="get-user" type="button">View Profile</button>
+        </article>
+
+        <article class="card op-card result-card module-result">
+          <h3>Response</h3>
+          <p id="statusLine" class="status-line">Ready</p>
+          <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year"></span> FinTrack. All rights reserved.</p>
+      <div class="footer-extra">
+        <div class="footer-grid">
+          <div class="footer-panels">
+            <article class="footer-panel">
+              <h4>User Setup</h4>
+              <p>Create profiles cleanly so every account and wallet stays linked correctly.</p>
+            </article>
+            <article class="footer-panel">
+              <h4>Profile Lookup</h4>
+              <p>Find user details quickly before performing account or transaction actions.</p>
+            </article>
+          </div>
+          <div class="footer-photo">
+            <img src="https://images.unsplash.com/photo-1521791055366-0d553872125f?auto=format&fit=crop&w=1200&q=80" alt="User onboarding and profile records" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
