@@ -5,36 +5,37 @@ import com.qburst.training.personalfinancetracker.entity.User;
 import com.qburst.training.personalfinancetracker.exception.DuplicateResourceException;
 import com.qburst.training.personalfinancetracker.exception.ResourceNotFoundException;
 import com.qburst.training.personalfinancetracker.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
-
     @Override
     @Transactional
     public UserDto.Response createUser(UserDto.Request request) {
-        if (userRepository.existsByEmail(request.email())) {
-            throw new DuplicateResourceException("Email already exists");
-        }
         if (userRepository.existsByUsername(request.username())) {
-            throw new DuplicateResourceException("Username already exists");
+            throw new DuplicateResourceException("Username already exists: " + request.username());
         }
-        User user = new User();
-        user.setUsername(request.username());
-        user.setEmail(request.email());
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setFullName(request.fullName());
+
+        if (userRepository.existsByEmail(request.email())) {
+            throw new DuplicateResourceException("Email already exists: " + request.email());
+        }
+
+        User user = User.builder()
+                .username(request.username())
+                .email(request.email())
+                .passwordHash(passwordEncoder.encode(request.password()))
+                .fullName(request.fullName())
+                .build();
+
         return toResponse(userRepository.save(user));
     }
 
@@ -42,8 +43,7 @@ public class UserServiceImpl implements UserService {
     public UserDto.Response getUserById(Long id) {
         return userRepository.findById(id)
                 .map(this::toResponse)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
 
     private UserDto.Response toResponse(User user) {

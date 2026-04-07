@@ -7,6 +7,69 @@ const API_BASE = window.location.protocol.startsWith('http')
 
 const statusLine = document.getElementById('statusLine');
 const resultEl = document.getElementById('result');
+const responseDrawerEl = document.getElementById('responseDrawer');
+const toastStackEl = document.getElementById('toastStack');
+
+const actionFeedback = {
+  'create-user': { success: 'User created successfully', error: 'Failed to create user' },
+  'get-user': { success: 'User profile loaded', error: 'Failed to fetch user profile' },
+  'create-bank-account': { success: 'Bank account added successfully', error: 'Failed to add bank account' },
+  'get-bank-account': { success: 'Bank account loaded', error: 'Failed to fetch bank account' },
+  'list-bank-accounts': { success: 'Bank accounts loaded', error: 'Failed to list bank accounts' },
+  'search-bank-accounts': { success: 'Account search completed', error: 'Failed to search bank accounts' },
+  'delete-bank-account': { success: 'Bank account deleted successfully', error: 'Failed to delete bank account' },
+  'create-wallet': { success: 'Wallet created successfully', error: 'Failed to create wallet' },
+  'get-wallet': { success: 'Wallet loaded', error: 'Failed to fetch wallet' },
+  'list-wallets': { success: 'Wallets loaded', error: 'Failed to list wallets' },
+  'delete-wallet': { success: 'Wallet deleted successfully', error: 'Failed to delete wallet' },
+  'record-income': { success: 'Income recorded successfully', error: 'Failed to record income' },
+  'record-expense': { success: 'Expense recorded successfully', error: 'Failed to record expense' },
+  'record-atm': { success: 'ATM withdrawal recorded', error: 'Failed to record ATM withdrawal' },
+  'record-bank-expense': { success: 'Bank expense recorded', error: 'Failed to record bank expense' },
+  'list-transactions': { success: 'Transactions loaded', error: 'Failed to list transactions' },
+  'get-transaction': { success: 'Transaction loaded', error: 'Failed to fetch transaction' },
+  'transfer-b2w': { success: 'Transfer to wallet successful', error: 'Failed to transfer bank to wallet' },
+  'transfer-w2b': { success: 'Transfer to bank successful', error: 'Failed to transfer wallet to bank' },
+  'report-bank-balances': { success: 'Bank balance report generated', error: 'Failed to generate bank balance report' },
+  'report-monthly-expenses': { success: 'Monthly expense report generated', error: 'Failed to generate monthly expense report' },
+  'report-category-expense': { success: 'Category report generated', error: 'Failed to generate category report' },
+  'report-summary': { success: 'Income/expense summary generated', error: 'Failed to generate income/expense summary' },
+  'admin-users': { success: 'Admin users loaded', error: 'Failed to load admin users' },
+  'admin-activities': { success: 'Admin activities loaded', error: 'Failed to load admin activities' },
+};
+
+function getSuccessMessage(action, data) {
+  return data?.message || actionFeedback[action]?.success || 'Action completed successfully';
+}
+
+function getErrorMessage(action, data, status) {
+  return data?.message || data?.error || actionFeedback[action]?.error || `Request failed (${status})`;
+}
+
+function showToast(message, type = 'info') {
+  if (!toastStackEl || !message) return;
+  const item = document.createElement('div');
+  item.className = `toast-item ${type}`;
+  item.textContent = message;
+  toastStackEl.appendChild(item);
+
+  const removeTimer = setTimeout(() => {
+    item.remove();
+  }, 3200);
+
+  item.addEventListener('click', () => {
+    clearTimeout(removeTimer);
+    item.remove();
+  });
+}
+
+const toast = {
+  success: message => showToast(message, 'success'),
+  error: message => showToast(message, 'error'),
+  info: message => showToast(message, 'info'),
+};
+
+window.toast = toast;
 
 function baseUrl() {
   return API_BASE;
@@ -20,6 +83,39 @@ function setStatus(message, ok = true) {
   if (!statusLine) return;
   statusLine.textContent = message;
   statusLine.className = `status-line ${ok ? 'ok' : 'err'}`;
+}
+
+function getInlineStatusNode(target) {
+  const card = target.closest('.op-card, .card');
+  if (!card) return null;
+
+  let node = card.querySelector('[data-inline-status]');
+  if (node) return node;
+
+  node = document.createElement('p');
+  node.className = 'inline-status';
+  node.setAttribute('data-inline-status', 'true');
+
+  const buttonRow = target.closest('.btn-row');
+  if (buttonRow && buttonRow.parentElement === card) {
+    buttonRow.insertAdjacentElement('afterend', node);
+    return node;
+  }
+
+  if (target.parentElement === card) {
+    target.insertAdjacentElement('afterend', node);
+    return node;
+  }
+
+  card.appendChild(node);
+  return node;
+}
+
+function setInlineStatus(target, message, type = 'info') {
+  const node = getInlineStatusNode(target);
+  if (!node) return;
+  node.textContent = message;
+  node.className = `inline-status ${type}`;
 }
 
 function val(id) {
@@ -102,7 +198,7 @@ function renderResult(data) {
   resultEl.innerHTML = body;
 }
 
-async function api(path, options = {}) {
+async function api(path, options = {}, action = 'request') {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
 
@@ -138,24 +234,30 @@ async function api(path, options = {}) {
   }
 
   if (!response.ok) {
-    if (response.status === 401) {
-      setStatus('Unauthorized. This action requires an authenticated session.', false);
-    } else {
-      setStatus(`Failed (${response.status})`, false);
-    }
+    const message = response.status === 401
+      ? 'Unauthorized. This action requires an authenticated session.'
+      : getErrorMessage(action, data, response.status);
+
+    toast.error(message);
     renderResult(data);
-    throw new Error(data?.message || `HTTP ${response.status}`);
+    if (responseDrawerEl) responseDrawerEl.open = true;
+    const err = new Error(message);
+    err.toastShown = true;
+    throw err;
   }
 
-  setStatus(`Success (${response.status})`, true);
+  const successMessage = getSuccessMessage(action, data);
+  toast.success(`✅ ${successMessage}`);
   renderResult(data);
   return data;
 }
 
 async function handleAction(action) {
+  const run = (path, options = {}) => api(path, options, action);
+
   switch (action) {
     case 'create-user':
-      return api('/users', {
+      return run('/users', {
         method: 'POST',
         body: JSON.stringify({
           username: requireText('u-username', 'Username'),
@@ -166,10 +268,10 @@ async function handleAction(action) {
       });
 
     case 'get-user':
-      return api(`/users/${requireNumber('u-id', 'User ID')}`);
+      return run(`/users/${requireNumber('u-id', 'User ID')}`);
 
     case 'create-bank-account':
-      return api('/bank-accounts', {
+      return run('/bank-accounts', {
         method: 'POST',
         body: JSON.stringify({
           userId: requireNumber('ba-userId', 'User ID'),
@@ -180,23 +282,23 @@ async function handleAction(action) {
       });
 
     case 'get-bank-account':
-      return api(`/bank-accounts/${requireNumber('ba-id', 'Account ID')}`);
+      return run(`/bank-accounts/${requireNumber('ba-id', 'Account ID')}`);
 
     case 'list-bank-accounts':
-      return api(`/bank-accounts/user/${requireNumber('ba-user-list', 'User ID')}`);
+      return run(`/bank-accounts/user/${requireNumber('ba-user-list', 'User ID')}`);
 
     case 'search-bank-accounts': {
       const params = new URLSearchParams();
       if (val('ba-search-bank')) params.set('bankName', val('ba-search-bank'));
       if (val('ba-search-user')) params.set('fullName', val('ba-search-user'));
-      return api(`/bank-accounts/search?${params.toString()}`);
+      return run(`/bank-accounts/search?${params.toString()}`);
     }
 
     case 'delete-bank-account':
-      return api(`/bank-accounts/${requireNumber('ba-delete-id', 'Delete Account ID')}`, { method: 'DELETE' });
+      return run(`/bank-accounts/${requireNumber('ba-delete-id', 'Delete Account ID')}`, { method: 'DELETE' });
 
     case 'create-wallet':
-      return api('/wallets', {
+      return run('/wallets', {
         method: 'POST',
         body: JSON.stringify({
           userId: requireNumber('w-userId', 'User ID'),
@@ -206,16 +308,16 @@ async function handleAction(action) {
       });
 
     case 'get-wallet':
-      return api(`/wallets/${requireNumber('w-id', 'Wallet ID')}`);
+      return run(`/wallets/${requireNumber('w-id', 'Wallet ID')}`);
 
     case 'list-wallets':
-      return api(`/wallets/user/${requireNumber('w-user-list', 'User ID')}`);
+      return run(`/wallets/user/${requireNumber('w-user-list', 'User ID')}`);
 
     case 'delete-wallet':
-      return api(`/wallets/${requireNumber('w-delete-id', 'Delete Wallet ID')}`, { method: 'DELETE' });
+      return run(`/wallets/${requireNumber('w-delete-id', 'Delete Wallet ID')}`, { method: 'DELETE' });
 
     case 'record-income':
-      return api('/transactions/income', {
+      return run('/transactions/income', {
         method: 'POST',
         body: JSON.stringify({
           walletId: requireNumber('tx-income-walletId', 'Income Wallet ID'),
@@ -226,7 +328,7 @@ async function handleAction(action) {
       });
 
     case 'record-expense':
-      return api('/transactions/expense', {
+      return run('/transactions/expense', {
         method: 'POST',
         body: JSON.stringify({
           walletId: requireNumber('tx-expense-walletId', 'Expense Wallet ID'),
@@ -237,7 +339,7 @@ async function handleAction(action) {
       });
 
     case 'record-atm':
-      return api('/transactions/atm-withdrawal', {
+      return run('/transactions/atm-withdrawal', {
         method: 'POST',
         body: JSON.stringify({
           bankAccountId: requireNumber('tx-atm-bankAccountId', 'ATM Bank Account ID'),
@@ -247,7 +349,7 @@ async function handleAction(action) {
       });
 
     case 'record-bank-expense':
-      return api('/transactions/bank-expense', {
+      return run('/transactions/bank-expense', {
         method: 'POST',
         body: JSON.stringify({
           bankAccountId: requireNumber('tx-bankexp-bankAccountId', 'Bank Expense Account ID'),
@@ -258,13 +360,13 @@ async function handleAction(action) {
       });
 
     case 'list-transactions':
-      return api(`/transactions/user/${requireNumber('tx-user-list', 'User ID')}`);
+      return run(`/transactions/user/${requireNumber('tx-user-list', 'User ID')}`);
 
     case 'get-transaction':
-      return api(`/transactions/${requireNumber('tx-id', 'Transaction ID')}`);
+      return run(`/transactions/${requireNumber('tx-id', 'Transaction ID')}`);
 
     case 'transfer-b2w':
-      return api('/transfers/bank-to-wallet', {
+      return run('/transfers/bank-to-wallet', {
         method: 'POST',
         body: JSON.stringify({
           sourceId: requireNumber('tr-b2w-sourceId', 'Bank Source ID'),
@@ -274,7 +376,7 @@ async function handleAction(action) {
       });
 
     case 'transfer-w2b':
-      return api('/transfers/wallet-to-bank', {
+      return run('/transfers/wallet-to-bank', {
         method: 'POST',
         body: JSON.stringify({
           sourceId: requireNumber('tr-w2b-sourceId', 'Wallet Source ID'),
@@ -284,22 +386,22 @@ async function handleAction(action) {
       });
 
     case 'report-bank-balances':
-      return api(`/reports/bank-balances?userId=${requireNumber('r-bank-userId', 'User ID')}`);
+      return run(`/reports/bank-balances?userId=${requireNumber('r-bank-userId', 'User ID')}`);
 
     case 'report-monthly-expenses':
-      return api(`/reports/monthly-expenses?userId=${requireNumber('r-monthly-userId', 'User ID')}`);
+      return run(`/reports/monthly-expenses?userId=${requireNumber('r-monthly-userId', 'User ID')}`);
 
     case 'report-category-expense':
-      return api(`/reports/expense-by-category?userId=${requireNumber('r-category-userId', 'User ID')}`);
+      return run(`/reports/expense-by-category?userId=${requireNumber('r-category-userId', 'User ID')}`);
 
     case 'report-summary':
-      return api(`/reports/income-expense-summary?userId=${requireNumber('r-summary-userId', 'User ID')}`);
+      return run(`/reports/income-expense-summary?userId=${requireNumber('r-summary-userId', 'User ID')}`);
 
     case 'admin-users':
-      return api('/admin/users');
+      return run('/admin/users');
 
     case 'admin-activities':
-      return api('/admin/activities');
+      return run('/admin/activities');
 
     default:
       return null;
@@ -313,11 +415,16 @@ document.addEventListener('click', async event => {
   if (!action) return;
 
   target.setAttribute('disabled', 'disabled');
-  setStatus(`Executing ${action}...`, true);
+  setInlineStatus(target, 'Processing request...', 'loading');
   try {
-    await handleAction(action);
+    const data = await handleAction(action);
+    setInlineStatus(target, `✔ ${getSuccessMessage(action, data)}`, 'success');
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : 'Request failed', false);
+    const message = error instanceof Error ? error.message : 'Request failed';
+    setInlineStatus(target, `✖ ${message}`, 'error');
+    if (!error?.toastShown) {
+      toast.error(message);
+    }
     console.error(error);
   } finally {
     target.removeAttribute('disabled');
@@ -329,4 +436,4 @@ if (yearEl) {
   yearEl.textContent = String(new Date().getFullYear());
 }
 
-setStatus('Ready', true);
+setStatus('Ready for actions', true);

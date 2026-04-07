@@ -4,25 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinTrack | Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg" />
+  <link rel="shortcut icon" href="assets/fintrack-icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
-  <header class="site-header">
-    <div class="container header-row">
-      <a class="brand" href="dashboard.html">FinTrack</a>
-      <nav class="main-nav">
+<body class="page-dashboard-sidebar">
+  <div class="page-wrapper">
+  <div class="dashboard-shell-pro">
+    <aside class="dashboard-sidebar-pro">
+      <a class="brand sidebar-brand-pro" href="dashboard.html" aria-label="FinTrack dashboard">
+        <img src="assets/fintrack-logo.svg" alt="FinTrack" />
+      </a>
+      <nav class="sidebar-nav-pro">
         <a href="#users">Users</a>
         <a href="#accounts">Accounts</a>
         <a href="#wallets">Wallets</a>
         <a href="#transactions">Transactions</a>
+        <a href="#transfers">Transfers</a>
         <a href="#reports">Reports</a>
       </nav>
-    </div>
-  </header>
+    </aside>
 
+    <div class="dashboard-main-pro">
   <main class="dashboard-main">
     <section class="dashboard-hero">
       <div class="container">
@@ -36,6 +42,7 @@
       <div class="container ops-grid two-col">
         <article class="card op-card">
           <h3>Create User</h3>
+          <p class="card-desc">Register a new profile with login details and display name.</p>
           <div class="form-grid">
             <input id="u-username" placeholder="Username" />
             <input id="u-email" placeholder="Email" />
@@ -47,6 +54,7 @@
 
         <article class="card op-card">
           <h3>View Profile</h3>
+          <p class="card-desc">Fetch a user profile quickly using the unique user ID.</p>
           <div class="form-grid single">
             <input id="u-id" type="number" placeholder="User ID" />
           </div>
@@ -59,6 +67,7 @@
       <div class="container ops-grid two-col">
         <article class="card op-card">
           <h3>Add Bank Account</h3>
+          <p class="card-desc">Link a bank account to a user with opening balance details.</p>
           <div class="form-grid">
             <input id="ba-userId" type="number" placeholder="User ID" />
             <input id="ba-bankName" placeholder="Bank name" />
@@ -70,6 +79,7 @@
 
         <article class="card op-card">
           <h3>Bank Account Queries</h3>
+          <p class="card-desc">Search, list, or remove accounts from one grouped query panel.</p>
           <div class="form-grid">
             <input id="ba-id" type="number" placeholder="Account ID" />
             <input id="ba-user-list" type="number" placeholder="User ID for list" />
@@ -84,6 +94,51 @@
             <button class="btn btn-danger" data-action="delete-bank-account" type="button">Delete</button>
           </div>
         </article>
+
+        <article class="card op-card section-full">
+          <h3>Account List</h3>
+          <p class="card-desc">Recent and queried accounts shown in a table layout for quick review.</p>
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Account ID</th>
+                  <th>User ID</th>
+                  <th>Bank</th>
+                  <th>Account Number</th>
+                  <th>Balance</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>1</td>
+                  <td>HDFC Bank</td>
+                  <td>****4321</td>
+                  <td>₹68,400.00</td>
+                  <td><span class="table-badge">Active</span></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>1</td>
+                  <td>ICICI Bank</td>
+                  <td>****9982</td>
+                  <td>₹31,200.00</td>
+                  <td><span class="table-badge">Active</span></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>2</td>
+                  <td>SBI</td>
+                  <td>****1150</td>
+                  <td>₹9,850.00</td>
+                  <td><span class="table-badge muted">Dormant</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -91,6 +146,7 @@
       <div class="container ops-grid two-col">
         <article class="card op-card">
           <h3>Create Wallet</h3>
+          <p class="card-desc">Create a wallet and assign an initial balance for the user.</p>
           <div class="form-grid">
             <input id="w-userId" type="number" placeholder="User ID" />
             <input id="w-walletName" placeholder="Wallet name" />
@@ -101,6 +157,7 @@
 
         <article class="card op-card">
           <h3>Wallet Queries</h3>
+          <p class="card-desc">Get, list, and delete wallets with simple grouped controls.</p>
           <div class="form-grid">
             <input id="w-id" type="number" placeholder="Wallet ID" />
             <input id="w-user-list" type="number" placeholder="User ID for list" />
@@ -119,6 +176,7 @@
       <div class="container ops-grid two-col">
         <article class="card op-card">
           <h3>Manage Transactions</h3>
+          <p class="card-desc">Capture income, expense, ATM, and bank expense entries in one card.</p>
           <div class="form-grid">
             <input id="tx-income-walletId" type="number" placeholder="Income Wallet ID" />
             <input id="tx-income-amount" type="number" step="0.01" placeholder="Income Amount" />
@@ -147,8 +205,9 @@
           </div>
         </article>
 
-        <article class="card op-card">
+        <article class="card op-card compact-card">
           <h3>Transaction History</h3>
+          <p class="card-desc">Review a user’s transaction timeline or fetch a single record.</p>
           <div class="form-grid">
             <input id="tx-user-list" type="number" placeholder="User ID for history" />
             <input id="tx-id" type="number" placeholder="Transaction ID" />
@@ -165,6 +224,7 @@
       <div class="container ops-grid two-col">
         <article class="card op-card">
           <h3>Transfer Funds</h3>
+          <p class="card-desc">Move funds between bank accounts and wallets from one workflow.</p>
           <div class="form-grid">
             <input id="tr-b2w-sourceId" type="number" placeholder="Bank Source ID" />
             <input id="tr-b2w-destinationId" type="number" placeholder="Wallet Destination ID" />
@@ -186,6 +246,7 @@
       <div class="container ops-grid two-col">
         <article class="card op-card">
           <h3>Reports</h3>
+          <p class="card-desc">Generate balances, monthly trends, category, and summary insights.</p>
           <div class="form-grid">
             <input id="r-bank-userId" type="number" placeholder="User ID (Bank balances)" />
             <input id="r-monthly-userId" type="number" placeholder="User ID (Monthly expenses)" />
@@ -206,20 +267,29 @@
       <div class="container ops-grid two-col">
         <article class="card op-card">
           <h3>Admin + Utility</h3>
+          <p class="card-desc">Access admin endpoints for users and activity auditing.</p>
           <div class="btn-row">
             <button class="btn btn-secondary" data-action="admin-users" type="button">Admin Users</button>
             <button class="btn btn-secondary" data-action="admin-activities" type="button">Admin Activities</button>
           </div>
         </article>
+      </div>
 
-        <article class="card op-card result-card">
-          <h3>Response</h3>
-          <p id="statusLine" class="status-line">Ready</p>
-          <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
-        </article>
+      <div class="container">
+        <details id="responseDrawer" class="response-drawer">
+          <summary>Response Details</summary>
+          <div class="response-drawer-body">
+            <p id="statusLine" class="status-line">Ready</p>
+            <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
+          </div>
+        </details>
       </div>
     </section>
   </main>
+
+    </div>
+  </div>
+  </div>
 
   <footer class="site-footer">
     <div class="container">
@@ -243,6 +313,8 @@
       </div>
     </div>
   </footer>
+
+  <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
 
   <script src="dashboard.js"></script>
 </body>

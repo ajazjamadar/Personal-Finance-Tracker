@@ -29,4 +29,18 @@ public class TransactionDto {
             String description,
             LocalDateTime createdAt
     ) {}
+
+    @Schema(name = "BulkRowError")
+    public record BulkRowError(
+            int rowNumber,
+            String error
+    ) {}
+
+    @Schema(name = "BulkResponse")
+    public record BulkResponse(
+            int acceptedCount,
+            int rejectedCount,
+            java.util.List<BulkRowError> errors,
+            java.util.List<Response> transactions
+    ) {}
 }

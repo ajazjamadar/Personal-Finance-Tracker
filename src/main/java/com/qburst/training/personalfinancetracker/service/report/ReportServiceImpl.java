@@ -102,7 +102,7 @@ public class ReportServiceImpl implements ReportService {
                 totalIncome.subtract(totalExpense));
     }
 
-    private void validateUser(Long userId) {
+    private void validateUser(Long userId) throws ResourceNotFoundException {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
