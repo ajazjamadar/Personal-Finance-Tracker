@@ -21,7 +21,6 @@
       <nav class="main-nav">
         <a class="active-link" href="users.html">Users</a>
         <a href="accounts.html">Accounts</a>
-        <a href="wallets.html">Wallets</a>
         <a href="transactions.html">Transactions</a>
         <a href="transfers.html">Transfers</a>
         <a href="reports.html">Reports</a>
@@ -33,36 +32,48 @@
     <section class="dashboard-hero">
       <div class="container">
         <p class="kicker">Users Module</p>
-        <h1 id="welcomeTitle">User Management</h1>
-        <p class="lead">Create users and fetch user details from backend APIs.</p>
+        <h1 id="welcomeTitle">Profile Overview</h1>
+        <p class="lead">Your profile details are fetched automatically after login.</p>
       </div>
     </section>
 
     <section class="features">
       <div class="container ops-grid two-col">
-        <article class="card op-card">
-          <h3>Create User</h3>
+        <article class="card op-card profile-card-only">
+          <h3>PERSONAL DETAILS</h3>
+          <div class="personal-details-grid">
+            <div class="personal-row">
+              <span class="personal-key">ID</span>
+              <span id="profile-id" class="personal-value">-</span>
+            </div>
+            <div class="personal-row">
+              <span class="personal-key">NAME</span>
+              <span id="profile-name" class="personal-value">-</span>
+            </div>
+            <div class="personal-row">
+              <span class="personal-key">EMAIL</span>
+              <span id="profile-email" class="personal-value">-</span>
+            </div>
+            <div class="personal-row">
+              <span class="personal-key">FULLNAME</span>
+              <span id="profile-fullname" class="personal-value">-</span>
+            </div>
+            <div class="personal-row">
+              <span class="personal-key">PROFILE CREATED AT</span>
+              <span id="profile-created-at" class="personal-value">-</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card op-card profile-card-only">
+          <h3>UPDATE PROFILE</h3>
           <div class="form-grid">
-            <input id="u-username" placeholder="Username" />
-            <input id="u-email" placeholder="Email" />
-            <input id="u-password" type="password" placeholder="Password" />
-            <input id="u-fullname" placeholder="Full name" />
+            <input id="edit-username" placeholder="Username" />
+            <input id="edit-email" placeholder="Email" />
+            <input id="edit-fullname" placeholder="Full name" />
+            <input id="edit-password" type="password" placeholder="New password (optional)" />
           </div>
-          <button class="btn btn-primary" data-action="create-user" type="button">Create User</button>
-        </article>
-
-        <article class="card op-card">
-          <h3>View Profile</h3>
-          <div class="form-grid single">
-            <input id="u-id" type="number" placeholder="User ID" />
-          </div>
-          <button class="btn btn-secondary" data-action="get-user" type="button">View Profile</button>
-        </article>
-
-        <article class="card op-card result-card module-result">
-          <h3>Response</h3>
-          <p id="statusLine" class="status-line">Ready</p>
-          <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
+          <button class="btn btn-primary" data-action="update-user" type="button">Update Profile</button>
         </article>
       </div>
     </section>
@@ -77,7 +88,7 @@
           <div class="footer-panels">
             <article class="footer-panel">
               <h4>User Setup</h4>
-              <p>Create profiles cleanly so every account and wallet stays linked correctly.</p>
+              <p>Create profiles cleanly so every bank account and transaction stays linked correctly.</p>
             </article>
             <article class="footer-panel">
               <h4>Profile Lookup</h4>

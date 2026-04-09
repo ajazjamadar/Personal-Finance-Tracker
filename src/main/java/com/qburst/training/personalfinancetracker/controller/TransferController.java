@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/transfers")
-@Tag(name = "Transfers", description = "Fund transfers between bank accounts and wallets")
+@Tag(name = "Transfers", description = "Fund transfers to accounts, mobile numbers, or UPI IDs")
 public class TransferController {
 
     private final TransferService transferService;
@@ -20,19 +20,11 @@ public class TransferController {
         this.transferService = transferService;
     }
 
-    @PostMapping("/bank-to-wallet")
-    @Operation(summary = "Transfer from bank account to wallet")
-        public ResponseEntity<TransferDto.Response> bankToWallet(
+    @PostMapping
+    @Operation(summary = "Create a transfer")
+    public ResponseEntity<TransferDto.Response> transfer(
             @Valid @RequestBody TransferDto.Request request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(transferService.bankToWallet(request));
-    }
-
-    @PostMapping("/wallet-to-bank")
-    @Operation(summary = "Transfer from wallet to bank account")
-        public ResponseEntity<TransferDto.Response> walletToBank(
-            @Valid @RequestBody TransferDto.Request request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(transferService.walletToBank(request));
+                .body(transferService.transfer(request));
     }
 }

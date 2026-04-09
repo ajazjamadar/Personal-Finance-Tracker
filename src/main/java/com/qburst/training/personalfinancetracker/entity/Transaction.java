@@ -27,16 +27,18 @@ public class Transaction {
     private BankAccount sourceBankAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "source_wallet_id")
-    private Wallet sourceWallet;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dest_bank_id")
     private BankAccount destBankAccount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dest_wallet_id")
-    private Wallet destWallet;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transfer_type", length = 20)
+    private TransferType transferType;
+
+    @Column(name = "self_transfer")
+    private Boolean selfTransfer;
+
+    @Column(name = "destination_value", length = 150)
+    private String destinationValue;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -67,5 +69,11 @@ public class Transaction {
         EXPENSE,
         ATM_WITHDRAWAL,
         TRANSFER
+    }
+
+    public enum TransferType {
+        ACCOUNT,
+        MOBILE,
+        UPI
     }
 }

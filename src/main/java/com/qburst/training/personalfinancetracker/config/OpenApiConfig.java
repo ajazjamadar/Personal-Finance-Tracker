@@ -17,8 +17,8 @@ public class OpenApiConfig {
                         .title("Personal Finance Tracker API")
                         .version("1.0.0")
                         .description("REST API for managing personal finance tracker."
-                                + "User can create bank accounts and wallets,"
-                                + "record income and expenses, transfer money between accounts, "
+                                + "User can create bank accounts,"
+                                + "record income and expenses, transfer money to accounts/mobile/UPI, "
                                 + "and generate financial report")
                         .contact(new Contact()
                                 .name("Ejaz")

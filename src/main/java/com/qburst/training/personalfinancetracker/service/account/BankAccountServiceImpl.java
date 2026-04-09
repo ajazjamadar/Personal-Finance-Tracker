@@ -9,11 +9,11 @@ import com.qburst.training.personalfinancetracker.exception.ResourceNotFoundExce
 import com.qburst.training.personalfinancetracker.repository.BankAccountRepository;
 import com.qburst.training.personalfinancetracker.repository.BankRepository;
 import com.qburst.training.personalfinancetracker.repository.UserRepository;
+import com.qburst.training.personalfinancetracker.security.AuthContextService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.stream.StreamSupport;
 
 import java.util.List;
 
@@ -26,20 +26,22 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final BankAccountRepository bankAccountRepository;
     private final UserRepository userRepository;
     private final BankRepository bankRepository;
+        private final AuthContextService authContextService;
 
     @Override
     @Transactional
     public BankAccountDto.Response createBankAccount(BankAccountDto.Request request) {
-        log.info("Creating bank account for userId={} accountNumber={}", request.userId(), request.accountNumber());
+                Long effectiveUserId = authContextService.resolveUserId(request.userId());
+                log.info("Creating bank account for userId={} accountNumber={}", effectiveUserId, request.accountNumber());
 
         if (bankAccountRepository.existsByAccountNumber(request.accountNumber())) {
             throw new DuplicateResourceException(
                     "Bank account already exists with account number: " + request.accountNumber());
         }
 
-        User user = userRepository.findById(request.userId())
+        User user = userRepository.findById(effectiveUserId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "User not found with id: " + request.userId()));
+                        "User not found with id: " + effectiveUserId));
 
         Bank bank = bankRepository.findByBankNameIgnoreCase(request.bankName())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -53,7 +55,7 @@ public class BankAccountServiceImpl implements BankAccountService {
                 .build();
 
         BankAccount saved = bankAccountRepository.save(account);
-        log.info("Created bank account id={} for userId={}", saved.getId(), request.userId());
+                log.info("Created bank account id={} for userId={}", saved.getId(), effectiveUserId);
         return toResponse(saved);
     }
 
@@ -61,15 +63,19 @@ public class BankAccountServiceImpl implements BankAccountService {
     public BankAccountDto.Response getBankAccountById(Long id) {
         log.debug("Fetching bank account by id={}", id);
         return bankAccountRepository.findById(id)
-                .map(this::toResponse)
+                .map(account -> {
+                    authContextService.ensureCanAccessUser(account.getUser().getId());
+                    return toResponse(account);
+                })
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Bank account not found with id: " + id));
     }
 
     @Override
     public List<BankAccountDto.Response> getBankAccountsByUserId(Long userId) {
-        log.debug("Fetching bank accounts for userId={}", userId);
-        return bankAccountRepository.findByUserId(userId)
+                Long effectiveUserId = authContextService.resolveUserId(userId);
+                log.debug("Fetching bank accounts for userId={}", effectiveUserId);
+                return bankAccountRepository.findByUserId(effectiveUserId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -100,6 +106,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         BankAccount account = bankAccountRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Bank account not found with id: " + id));
+                authContextService.ensureCanAccessUser(account.getUser().getId());
         bankAccountRepository.delete(account);
         log.info("Deleted bank account id={}", id);
     }

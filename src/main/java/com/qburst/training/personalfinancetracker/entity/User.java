@@ -27,6 +27,10 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserRole role;
+
     @Column(nullable = false, length = 150)
     private String fullName;
 
@@ -39,11 +43,11 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<BankAccount> bankAccounts;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Wallet> wallets;
-
     @PrePersist
     protected void onCreate() {
+        if (role == null) {
+            role = UserRole.USER;
+        }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }

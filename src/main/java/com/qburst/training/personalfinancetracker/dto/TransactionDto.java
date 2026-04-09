@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class TransactionDto {
         @Schema(name = "TransactionRequest")
     public record Request(
-            Long walletId,
+            @NotNull(message = "Bank account ID is required")
             Long bankAccountId,
 
             @NotNull(message = "Amount is required")

@@ -9,4 +9,5 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     List<Transaction> findByUserId(Long userId);
     List<Transaction> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<Transaction> findTop50ByOrderByCreatedAtDesc();
 }

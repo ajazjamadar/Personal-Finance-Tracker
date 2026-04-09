@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinTrack | User Login</title>
+  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg" />
+  <link rel="shortcut icon" href="assets/fintrack-icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-auth-page="user-login" class="auth-page-body">
+  <main class="auth-layout">
+    <section class="auth-card">
+      <a class="brand" href="index.html" aria-label="FinTrack home">
+        <img src="assets/fintrack-logo.svg" alt="FinTrack" />
+      </a>
+      <p class="kicker">User Access</p>
+      <h1>User Login</h1>
+      <p class="lead">Use direct password login if you know your password, or continue with OTP verification.</p>
+
+      <form id="requestOtpForm" class="auth-form active" novalidate>
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@example.com" required />
+
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Your password" required />
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="directLoginButton" type="button">Login with Password</button>
+          <button class="btn btn-secondary" type="submit">Use OTP Instead</button>
+        </div>
+      </form>
+
+      <form id="verifyOtpForm" class="auth-form active" novalidate>
+        <div id="otpSection" hidden>
+          <label for="otp">OTP</label>
+          <input id="otp" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit OTP" required />
+          <button class="btn btn-secondary" type="submit">Verify OTP & Login</button>
+        </div>
+      </form>
+
+      <p id="authStatus" class="auth-status">Enter your credentials to receive OTP.</p>
+      <p class="auth-links">
+        <a href="register.html">Create new user account</a>
+        <a href="admin-login.html">Admin Login</a>
+      </p>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+</body>
+</html>

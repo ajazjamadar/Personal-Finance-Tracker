@@ -2,9 +2,12 @@ package com.qburst.training.personalfinancetracker.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import com.qburst.training.personalfinancetracker.exception.DuplicateResourceException;
 import com.qburst.training.personalfinancetracker.exception.InsufficientBalanceException;
 
@@ -53,6 +56,28 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(
+                Map.of(
+                        "error", "Method not allowed for this endpoint",
+                        "status", 405,
+                        "timestamp", LocalDateTime.now().toString()
+                )
+        );
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResourceFound(NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                Map.of(
+                        "error", "API endpoint not found",
+                        "status", 404,
+                        "timestamp", LocalDateTime.now().toString()
+                )
+        );
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
@@ -85,4 +110,15 @@ public class GlobalExceptionHandler {
                 )
         );
     }
+
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                                Map.of(
+                                                "error", ex.getMessage(),
+                                                "status", 403,
+                                                "timestamp", LocalDateTime.now().toString()
+                                )
+                );
+        }
 }

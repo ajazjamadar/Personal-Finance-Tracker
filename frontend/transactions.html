@@ -21,7 +21,6 @@
       <nav class="main-nav">
         <a href="users.html">Users</a>
         <a href="accounts.html">Accounts</a>
-        <a href="wallets.html">Wallets</a>
         <a class="active-link" href="transactions.html">Transactions</a>
         <a href="transfers.html">Transfers</a>
         <a href="reports.html">Reports</a>
@@ -34,7 +33,7 @@
       <div class="container">
         <p class="kicker">Transactions Module</p>
         <h1 id="welcomeTitle">Transaction Management</h1>
-        <p class="lead">Record income, expenses, and withdrawals, then review transaction history.</p>
+        <p class="lead">Record income, expenses, and withdrawals against bank accounts, then review transaction history.</p>
       </div>
     </section>
 
@@ -43,7 +42,7 @@
         <article class="card op-card">
           <h3>Record Income</h3>
           <div class="form-grid single">
-            <input id="tx-income-walletId" type="number" placeholder="Income Wallet ID" />
+            <input id="tx-income-bankAccountId" type="number" placeholder="Income Bank Account ID" />
             <input id="tx-income-amount" type="number" step="0.01" placeholder="Income Amount" />
             <input id="tx-income-category" placeholder="Income Category" />
             <input id="tx-income-description" placeholder="Income Description" />
@@ -56,7 +55,7 @@
         <article class="card op-card">
           <h3>Add Expense</h3>
           <div class="form-grid single">
-            <input id="tx-expense-walletId" type="number" placeholder="Expense Wallet ID" />
+            <input id="tx-expense-bankAccountId" type="number" placeholder="Expense Bank Account ID" />
             <input id="tx-expense-amount" type="number" step="0.01" placeholder="Expense Amount" />
             <input id="tx-expense-category" placeholder="Expense Category" />
             <input id="tx-expense-description" placeholder="Expense Description" />

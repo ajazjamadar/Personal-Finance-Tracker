@@ -7,6 +7,7 @@ import com.qburst.training.personalfinancetracker.exception.ResourceNotFoundExce
 import com.qburst.training.personalfinancetracker.repository.BankAccountRepository;
 import com.qburst.training.personalfinancetracker.repository.TransactionRepository;
 import com.qburst.training.personalfinancetracker.repository.UserRepository;
+import com.qburst.training.personalfinancetracker.security.AuthContextService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,19 +24,23 @@ public class ReportServiceImpl implements ReportService {
     private final BankAccountRepository bankAccountRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+        private final AuthContextService authContextService;
 
     public ReportServiceImpl(BankAccountRepository bankAccountRepository,
                              TransactionRepository transactionRepository,
-                             UserRepository userRepository) {
+                                                         UserRepository userRepository,
+                                                         AuthContextService authContextService) {
         this.bankAccountRepository = bankAccountRepository;
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
+                this.authContextService = authContextService;
     }
 
     @Override
     public List<BankAccountDto.BalanceSummary> getBankBalanceSummary(Long userId) {
-        validateUser(userId);
-        return bankAccountRepository.findByUserId(userId)
+                Long effectiveUserId = authContextService.resolveUserId(userId);
+                validateUser(effectiveUserId);
+                return bankAccountRepository.findByUserId(effectiveUserId)
                 .stream()
                 .map(a -> new BankAccountDto.BalanceSummary(
                         a.getBank().getBankName(),
@@ -46,8 +51,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<ReportDto.MonthlyExpense> getMonthlyExpenses(Long userId) {
-        validateUser(userId);
-        return transactionRepository.findByUserIdOrderByCreatedAtDesc(userId)
+                Long effectiveUserId = authContextService.resolveUserId(userId);
+                validateUser(effectiveUserId);
+                return transactionRepository.findByUserIdOrderByCreatedAtDesc(effectiveUserId)
                 .stream()
                 .filter(t -> t.getTransactionType() == TransactionType.EXPENSE)
                 .collect(Collectors.groupingBy(
@@ -67,8 +73,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<ReportDto.CategoryExpense> getExpenseByCategory(Long userId) {
-        validateUser(userId);
-        return transactionRepository.findByUserIdOrderByCreatedAtDesc(userId)
+                Long effectiveUserId = authContextService.resolveUserId(userId);
+                validateUser(effectiveUserId);
+                return transactionRepository.findByUserIdOrderByCreatedAtDesc(effectiveUserId)
                 .stream()
                 .filter(t -> t.getTransactionType() == TransactionType.EXPENSE
                         && t.getDescription() != null)
@@ -83,8 +90,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public ReportDto.IncomeExpenseSummary getIncomeExpenseSummary(Long userId) {
-        validateUser(userId);
-        var transactions = transactionRepository.findByUserIdOrderByCreatedAtDesc(userId);
+                Long effectiveUserId = authContextService.resolveUserId(userId);
+                validateUser(effectiveUserId);
+                var transactions = transactionRepository.findByUserIdOrderByCreatedAtDesc(effectiveUserId);
 
         BigDecimal totalIncome = transactions.stream()
                 .filter(t -> t.getTransactionType() == TransactionType.INCOME)

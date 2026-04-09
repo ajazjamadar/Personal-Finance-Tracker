@@ -1,5 +1,6 @@
 package com.qburst.training.personalfinancetracker.dto;
 
+import com.qburst.training.personalfinancetracker.entity.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
@@ -21,7 +22,9 @@ public class UserDto {
             String password,
 
             @NotBlank(message = "Full name is required")
-            String fullName
+            String fullName,
+
+            UserRole role
     ) {}
 
     @Schema(name = "UserResponse")
@@ -30,6 +33,24 @@ public class UserDto {
             String username,
             String email,
             String fullName,
+                        UserRole role,
             LocalDateTime createdAt
+    ) {}
+
+    @Schema(name = "UserUpdateRequest")
+    public record UpdateRequest(
+            @NotBlank(message = "Username is required")
+            @Size(min = 3, max = 100)
+            String username,
+
+            @NotBlank(message = "Email is required")
+            @Email(message = "Email must be valid")
+            String email,
+
+            @NotBlank(message = "Full name is required")
+            String fullName,
+
+            @Size(min = 6, message = "Password must contain at least 6 characters")
+            String password
     ) {}
 }

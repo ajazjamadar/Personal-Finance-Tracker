@@ -3,16 +3,15 @@ package com.qburst.training.personalfinancetracker.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "wallets")
+@Table(name = "login_otps")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Wallet {
+public class LoginOtp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,21 +21,30 @@ public class Wallet {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 100)
-    private String walletName;
+    @Column(nullable = false)
+    private String otpHash;
 
-    @Column(precision = 15, scale = 2)
-    private BigDecimal balance;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private OtpPurpose purpose;
 
-    @Version
-    private Long version;
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
+
+    @Column
+    private LocalDateTime usedAt;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        if (balance == null) balance = BigDecimal.ZERO;
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+
+    public enum OtpPurpose {
+        LOGIN
     }
 }

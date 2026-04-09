@@ -11,21 +11,42 @@ public class TransferDto {
 
     @Schema(name = "TransferRequest")
     public record Request(
-            @NotNull(message = "Source ID is required")
-            Long sourceId,
+            @NotNull(message = "Source account ID is required")
+            Long sourceAccountId,
 
-            @NotNull(message = "Destination ID is required")
-            Long destinationId,
+            Long destinationAccountId,
+
+            @NotNull(message = "Transfer type is required")
+            TransferType transferType,
+
+            Boolean selfTransfer,
+
+            String mobileNumber,
+
+            String upiId,
 
             @NotNull(message = "Amount is required")
             @Positive(message = "Amount must be positive")
-            BigDecimal amount
+            BigDecimal amount,
+
+            String description
     ) {}
+
+    public enum TransferType {
+        ACCOUNT,
+        MOBILE,
+        UPI
+    }
 
     @Schema(name = "TransferResponse")
     public record Response(
             Long id,
             String transactionType,
+            String transferType,
+            Boolean selfTransfer,
+            Long sourceAccountId,
+            Long destinationAccountId,
+            String destinationValue,
             BigDecimal amount,
             String description,
             LocalDateTime createdAt

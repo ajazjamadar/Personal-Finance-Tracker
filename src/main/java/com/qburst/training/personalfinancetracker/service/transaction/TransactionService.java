@@ -10,4 +10,5 @@ public interface TransactionService {
     TransactionDto.Response recordBankExpense(TransactionDto.Request request);
     List<TransactionDto.Response> getTransactionsByUserId(Long userId);
     TransactionDto.Response getTransactionById(Long id);
+    List<TransactionDto.Response> getRecentActivities();
 }

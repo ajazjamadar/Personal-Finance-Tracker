@@ -21,7 +21,6 @@
       <nav class="main-nav">
         <a href="users.html">Users</a>
         <a href="accounts.html">Accounts</a>
-        <a href="wallets.html">Wallets</a>
         <a href="transactions.html">Transactions</a>
         <a class="active-link" href="transfers.html">Transfers</a>
         <a href="reports.html">Reports</a>
@@ -34,33 +33,36 @@
       <div class="container">
         <p class="kicker">Transfers Module</p>
         <h1 id="welcomeTitle">Fund Transfer Operations</h1>
-        <p class="lead">Move funds securely between bank accounts and wallets with dedicated transfer workflows.</p>
+        <p class="lead">Transfer funds to another account, mobile number, or UPI ID with optional self-transfer mode.</p>
       </div>
     </section>
 
     <section class="features">
       <div class="container ops-grid two-col">
         <article class="card op-card">
-          <h3>Bank to Wallet Transfer</h3>
+          <h3>Create Transfer</h3>
           <div class="form-grid single">
-            <input id="tr-b2w-sourceId" type="number" placeholder="Bank Source ID" />
-            <input id="tr-b2w-destinationId" type="number" placeholder="Wallet Destination ID" />
-            <input id="tr-b2w-amount" type="number" step="0.01" placeholder="Transfer Amount" />
-          </div>
-          <div class="btn-row">
-            <button class="btn btn-primary" data-action="transfer-b2w" type="button">Bank to Wallet Transfer</button>
-          </div>
-        </article>
+            <input id="tr-sourceAccountId" type="number" placeholder="Source Account ID" />
 
-        <article class="card op-card">
-          <h3>Wallet to Bank Transfer</h3>
-          <div class="form-grid single">
-            <input id="tr-w2b-sourceId" type="number" placeholder="Wallet Source ID" />
-            <input id="tr-w2b-destinationId" type="number" placeholder="Bank Destination ID" />
-            <input id="tr-w2b-amount" type="number" step="0.01" placeholder="Transfer Amount" />
+            <select id="tr-transferType">
+              <option value="ACCOUNT">Account</option>
+              <option value="MOBILE">Mobile Number</option>
+              <option value="UPI">UPI ID</option>
+            </select>
+
+            <label class="inline-check">
+              <input id="tr-selfTransfer" type="checkbox" />
+              <span>Self transfer</span>
+            </label>
+
+            <input id="tr-destinationAccountId" type="number" placeholder="Destination Account ID (for Account transfer)" />
+            <input id="tr-mobileNumber" placeholder="Mobile Number (for Mobile transfer)" />
+            <input id="tr-upiId" placeholder="UPI ID (for UPI transfer)" />
+            <input id="tr-description" placeholder="Description (optional)" />
+            <input id="tr-amount" type="number" step="0.01" placeholder="Transfer Amount" />
           </div>
           <div class="btn-row">
-            <button class="btn btn-primary" data-action="transfer-w2b" type="button">Wallet to Bank Transfer</button>
+            <button class="btn btn-primary" data-action="transfer-funds" type="button">Transfer Funds</button>
           </div>
         </article>
 
@@ -82,7 +84,7 @@
           <div class="footer-panels">
             <article class="footer-panel">
               <h4>Transfer Flow</h4>
-              <p>Move funds between bank and wallet safely with clear source tracking.</p>
+              <p>Move funds to account, mobile, or UPI destinations with clear source tracking.</p>
             </article>
             <article class="footer-panel">
               <h4>Sync Balances</h4>

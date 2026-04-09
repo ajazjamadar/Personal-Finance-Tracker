@@ -1,6 +1,16 @@
 const TOKEN_KEY = 'fintrack-token';
+const SESSION_KEY = 'fintrack-session';
 
-const token = localStorage.getItem(TOKEN_KEY) || '';
+let token = localStorage.getItem(TOKEN_KEY) || '';
+let session = (() => {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+})();
+
 const API_BASE = window.location.protocol.startsWith('http')
   ? `${window.location.protocol}//${window.location.hostname || 'localhost'}:8080/api`
   : 'http://localhost:8080/api';
@@ -9,27 +19,33 @@ const statusLine = document.getElementById('statusLine');
 const resultEl = document.getElementById('result');
 const responseDrawerEl = document.getElementById('responseDrawer');
 const toastStackEl = document.getElementById('toastStack');
+const sessionInfoEl = document.getElementById('sessionInfo');
+const welcomeTitleEl = document.getElementById('welcomeTitle');
+const logoutButton = document.getElementById('logoutButton');
+const profileIdEl = document.getElementById('profile-id');
+const profileNameEl = document.getElementById('profile-name');
+const profileEmailEl = document.getElementById('profile-email');
+const profileFullNameEl = document.getElementById('profile-fullname');
+const profileCreatedAtEl = document.getElementById('profile-created-at');
+const editUsernameEl = document.getElementById('edit-username');
+const editEmailEl = document.getElementById('edit-email');
+const editFullNameEl = document.getElementById('edit-fullname');
+const editPasswordEl = document.getElementById('edit-password');
 
 const actionFeedback = {
-  'create-user': { success: 'User created successfully', error: 'Failed to create user' },
-  'get-user': { success: 'User profile loaded', error: 'Failed to fetch user profile' },
+  'update-user': { success: 'User profile updated successfully', error: 'Failed to update profile' },
   'create-bank-account': { success: 'Bank account added successfully', error: 'Failed to add bank account' },
   'get-bank-account': { success: 'Bank account loaded', error: 'Failed to fetch bank account' },
   'list-bank-accounts': { success: 'Bank accounts loaded', error: 'Failed to list bank accounts' },
   'search-bank-accounts': { success: 'Account search completed', error: 'Failed to search bank accounts' },
   'delete-bank-account': { success: 'Bank account deleted successfully', error: 'Failed to delete bank account' },
-  'create-wallet': { success: 'Wallet created successfully', error: 'Failed to create wallet' },
-  'get-wallet': { success: 'Wallet loaded', error: 'Failed to fetch wallet' },
-  'list-wallets': { success: 'Wallets loaded', error: 'Failed to list wallets' },
-  'delete-wallet': { success: 'Wallet deleted successfully', error: 'Failed to delete wallet' },
   'record-income': { success: 'Income recorded successfully', error: 'Failed to record income' },
   'record-expense': { success: 'Expense recorded successfully', error: 'Failed to record expense' },
   'record-atm': { success: 'ATM withdrawal recorded', error: 'Failed to record ATM withdrawal' },
   'record-bank-expense': { success: 'Bank expense recorded', error: 'Failed to record bank expense' },
   'list-transactions': { success: 'Transactions loaded', error: 'Failed to list transactions' },
   'get-transaction': { success: 'Transaction loaded', error: 'Failed to fetch transaction' },
-  'transfer-b2w': { success: 'Transfer to wallet successful', error: 'Failed to transfer bank to wallet' },
-  'transfer-w2b': { success: 'Transfer to bank successful', error: 'Failed to transfer wallet to bank' },
+  'transfer-funds': { success: 'Transfer completed successfully', error: 'Failed to transfer funds' },
   'report-bank-balances': { success: 'Bank balance report generated', error: 'Failed to generate bank balance report' },
   'report-monthly-expenses': { success: 'Monthly expense report generated', error: 'Failed to generate monthly expense report' },
   'report-category-expense': { success: 'Category report generated', error: 'Failed to generate category report' },
@@ -77,6 +93,152 @@ function baseUrl() {
 
 function currentToken() {
   return token || '';
+}
+
+function currentSession() {
+  return session;
+}
+
+function currentUserId() {
+  return currentSession()?.id ?? null;
+}
+
+function currentRole() {
+  return currentSession()?.role ?? 'USER';
+}
+
+function isAdmin() {
+  return currentRole() === 'ADMIN';
+}
+
+function logout(redirectTo = 'user-login.html') {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(SESSION_KEY);
+  token = '';
+  session = null;
+  window.location.href = redirectTo;
+}
+
+function roleUserId(id, label) {
+  if (isAdmin()) {
+    return requireNumber(id, label);
+  }
+  const uid = currentUserId();
+  if (!uid) {
+    throw new Error('Unable to resolve current user session. Please login again.');
+  }
+  return uid;
+}
+
+function reportUserId(id, label) {
+  return isAdmin() ? requireNumber(id, label) : currentUserId();
+}
+
+function applySessionInfo() {
+  const active = currentSession();
+  if (!active) return;
+
+  if (sessionInfoEl) {
+    sessionInfoEl.textContent = `Logged in as ${active.fullName} (${active.email}) • Role: ${active.role}`;
+  }
+
+  if (welcomeTitleEl) {
+    welcomeTitleEl.textContent = `Welcome, ${active.fullName}`;
+  }
+
+  if (profileIdEl) {
+    profileIdEl.textContent = String(active.id ?? '-');
+  }
+
+  if (profileNameEl) {
+    profileNameEl.textContent = active.username || '-';
+  }
+
+  if (profileEmailEl) {
+    profileEmailEl.textContent = active.email || '-';
+  }
+
+  if (profileFullNameEl) {
+    profileFullNameEl.textContent = active.fullName || '-';
+  }
+
+  if (profileCreatedAtEl) {
+    const createdDate = active.createdAt ? new Date(active.createdAt) : null;
+    profileCreatedAtEl.textContent = createdDate && !Number.isNaN(createdDate.getTime())
+      ? createdDate.toLocaleString()
+      : (active.createdAt || '-');
+  }
+
+  if (editUsernameEl) {
+    editUsernameEl.value = active.username || '';
+  }
+
+  if (editEmailEl) {
+    editEmailEl.value = active.email || '';
+  }
+
+  if (editFullNameEl) {
+    editFullNameEl.value = active.fullName || '';
+  }
+
+  if (editPasswordEl) {
+    editPasswordEl.value = '';
+  }
+}
+
+function applyRoleDefaults() {
+  if (isAdmin()) return;
+
+  const userIdInputs = [
+    'ba-userId',
+    'ba-user-list',
+    'tx-user-list',
+    'r-bank-userId',
+    'r-monthly-userId',
+    'r-category-userId',
+    'r-summary-userId'
+  ];
+
+  userIdInputs.forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.value = String(currentUserId() || '');
+    input.setAttribute('readonly', 'readonly');
+  });
+
+  ['search-bank-accounts', 'admin-users', 'admin-activities'].forEach(action => {
+    const button = document.querySelector(`[data-action="${action}"]`);
+    if (!button) return;
+    button.setAttribute('disabled', 'disabled');
+    button.setAttribute('title', 'Admin access required');
+  });
+}
+
+async function bootstrapSession() {
+  if (!currentToken()) {
+    logout('user-login.html');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${baseUrl()}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${currentToken()}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Session expired');
+    }
+
+    const profile = await response.json();
+    session = profile;
+    localStorage.setItem(SESSION_KEY, JSON.stringify(profile));
+    applySessionInfo();
+    applyRoleDefaults();
+  } catch {
+    logout('user-login.html');
+  }
 }
 
 function setStatus(message, ok = true) {
@@ -256,25 +418,39 @@ async function handleAction(action) {
   const run = (path, options = {}) => api(path, options, action);
 
   switch (action) {
-    case 'create-user':
-      return run('/users', {
-        method: 'POST',
-        body: JSON.stringify({
-          username: requireText('u-username', 'Username'),
-          email: requireText('u-email', 'Email'),
-          password: requireText('u-password', 'Password'),
-          fullName: requireText('u-fullname', 'Full name'),
-        }),
-      });
+    case 'update-user': {
+      const userId = currentUserId();
+      if (!userId) {
+        throw new Error('Unable to resolve current user session. Please login again.');
+      }
 
-    case 'get-user':
-      return run(`/users/${requireNumber('u-id', 'User ID')}`);
+      const payload = {
+        username: requireText('edit-username', 'Username'),
+        email: requireText('edit-email', 'Email'),
+        fullName: requireText('edit-fullname', 'Full name')
+      };
+
+      const newPassword = val('edit-password');
+      if (newPassword) {
+        payload.password = newPassword;
+      }
+
+      return run(`/users/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      }).then(data => {
+        session = data;
+        localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+        applySessionInfo();
+        return data;
+      });
+    }
 
     case 'create-bank-account':
       return run('/bank-accounts', {
         method: 'POST',
         body: JSON.stringify({
-          userId: requireNumber('ba-userId', 'User ID'),
+          userId: roleUserId('ba-userId', 'User ID'),
           bankName: requireText('ba-bankName', 'Bank name'),
           accountNumber: requireText('ba-accountNumber', 'Account number'),
           initialBalance: requireNumber('ba-initialBalance', 'Initial balance'),
@@ -285,7 +461,7 @@ async function handleAction(action) {
       return run(`/bank-accounts/${requireNumber('ba-id', 'Account ID')}`);
 
     case 'list-bank-accounts':
-      return run(`/bank-accounts/user/${requireNumber('ba-user-list', 'User ID')}`);
+      return run(`/bank-accounts/user/${roleUserId('ba-user-list', 'User ID')}`);
 
     case 'search-bank-accounts': {
       const params = new URLSearchParams();
@@ -297,30 +473,11 @@ async function handleAction(action) {
     case 'delete-bank-account':
       return run(`/bank-accounts/${requireNumber('ba-delete-id', 'Delete Account ID')}`, { method: 'DELETE' });
 
-    case 'create-wallet':
-      return run('/wallets', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId: requireNumber('w-userId', 'User ID'),
-          walletName: requireText('w-walletName', 'Wallet name'),
-          initialBalance: requireNumber('w-initialBalance', 'Initial balance'),
-        }),
-      });
-
-    case 'get-wallet':
-      return run(`/wallets/${requireNumber('w-id', 'Wallet ID')}`);
-
-    case 'list-wallets':
-      return run(`/wallets/user/${requireNumber('w-user-list', 'User ID')}`);
-
-    case 'delete-wallet':
-      return run(`/wallets/${requireNumber('w-delete-id', 'Delete Wallet ID')}`, { method: 'DELETE' });
-
     case 'record-income':
       return run('/transactions/income', {
         method: 'POST',
         body: JSON.stringify({
-          walletId: requireNumber('tx-income-walletId', 'Income Wallet ID'),
+          bankAccountId: requireNumber('tx-income-bankAccountId', 'Income Bank Account ID'),
           amount: requireNumber('tx-income-amount', 'Income amount'),
           category: val('tx-income-category'),
           description: val('tx-income-description'),
@@ -331,7 +488,7 @@ async function handleAction(action) {
       return run('/transactions/expense', {
         method: 'POST',
         body: JSON.stringify({
-          walletId: requireNumber('tx-expense-walletId', 'Expense Wallet ID'),
+          bankAccountId: requireNumber('tx-expense-bankAccountId', 'Expense Bank Account ID'),
           amount: requireNumber('tx-expense-amount', 'Expense amount'),
           category: val('tx-expense-category'),
           description: val('tx-expense-description'),
@@ -360,42 +517,44 @@ async function handleAction(action) {
       });
 
     case 'list-transactions':
-      return run(`/transactions/user/${requireNumber('tx-user-list', 'User ID')}`);
+      return run(`/transactions/user/${roleUserId('tx-user-list', 'User ID')}`);
 
     case 'get-transaction':
       return run(`/transactions/${requireNumber('tx-id', 'Transaction ID')}`);
 
-    case 'transfer-b2w':
-      return run('/transfers/bank-to-wallet', {
-        method: 'POST',
-        body: JSON.stringify({
-          sourceId: requireNumber('tr-b2w-sourceId', 'Bank Source ID'),
-          destinationId: requireNumber('tr-b2w-destinationId', 'Wallet Destination ID'),
-          amount: requireNumber('tr-b2w-amount', 'Transfer amount'),
-        }),
-      });
+    case 'transfer-funds': {
+      const transferType = requireText('tr-transferType', 'Transfer type');
+      const destinationAccountId = num('tr-destinationAccountId');
+      const mobileNumber = val('tr-mobileNumber');
+      const upiId = val('tr-upiId');
+      const selfTransfer = document.getElementById('tr-selfTransfer')?.checked === true;
 
-    case 'transfer-w2b':
-      return run('/transfers/wallet-to-bank', {
+      return run('/transfers', {
         method: 'POST',
         body: JSON.stringify({
-          sourceId: requireNumber('tr-w2b-sourceId', 'Wallet Source ID'),
-          destinationId: requireNumber('tr-w2b-destinationId', 'Bank Destination ID'),
-          amount: requireNumber('tr-w2b-amount', 'Transfer amount'),
+          sourceAccountId: requireNumber('tr-sourceAccountId', 'Source Account ID'),
+          destinationAccountId,
+          transferType,
+          selfTransfer,
+          mobileNumber,
+          upiId,
+          amount: requireNumber('tr-amount', 'Transfer amount'),
+          description: val('tr-description'),
         }),
       });
+    }
 
     case 'report-bank-balances':
-      return run(`/reports/bank-balances?userId=${requireNumber('r-bank-userId', 'User ID')}`);
+      return run(`/reports/bank-balances?userId=${reportUserId('r-bank-userId', 'User ID')}`);
 
     case 'report-monthly-expenses':
-      return run(`/reports/monthly-expenses?userId=${requireNumber('r-monthly-userId', 'User ID')}`);
+      return run(`/reports/monthly-expenses?userId=${reportUserId('r-monthly-userId', 'User ID')}`);
 
     case 'report-category-expense':
-      return run(`/reports/expense-by-category?userId=${requireNumber('r-category-userId', 'User ID')}`);
+      return run(`/reports/expense-by-category?userId=${reportUserId('r-category-userId', 'User ID')}`);
 
     case 'report-summary':
-      return run(`/reports/income-expense-summary?userId=${requireNumber('r-summary-userId', 'User ID')}`);
+      return run(`/reports/income-expense-summary?userId=${reportUserId('r-summary-userId', 'User ID')}`);
 
     case 'admin-users':
       return run('/admin/users');
@@ -437,3 +596,9 @@ if (yearEl) {
 }
 
 setStatus('Ready for actions', true);
+
+if (logoutButton) {
+  logoutButton.addEventListener('click', () => logout('user-login.html'));
+}
+
+bootstrapSession();

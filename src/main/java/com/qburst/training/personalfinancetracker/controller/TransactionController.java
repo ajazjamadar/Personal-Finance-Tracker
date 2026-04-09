@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/transactions")
-@Tag(name = "Transactions", description = "Record income, expenses, ATM withdrawals and bank payments")
+@Tag(name = "Transactions", description = "Record account income, expenses, ATM withdrawals and bank payments")
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -33,7 +33,7 @@ public class TransactionController {
     }
 
     @PostMapping("/expense")
-    @Operation(summary = "Record wallet expense")
+    @Operation(summary = "Record account expense")
     @ApiResponse(responseCode = "201", description = "Expense recorded")
     public ResponseEntity<TransactionDto.Response> recordExpense(
             @Valid @RequestBody TransactionDto.Request request) {
