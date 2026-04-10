@@ -31,4 +31,5 @@ build/
 .vscode/
 
 .env
-.env.example
+.envexample
+
