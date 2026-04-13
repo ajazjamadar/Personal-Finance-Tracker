@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinTrack | Admin Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg?v=3" />
+  <link rel="shortcut icon" href="assets/fintrack-icon.svg?v=3" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="page-sidebar page-admin-dashboard" data-admin-workspace="dashboard">
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container header-row">
+        <a class="brand" href="admin-dashboard.html" aria-label="FinTrack admin dashboard">
+          <img src="assets/fintrack-logo.svg?v=3" alt="FinTrack" />
+        </a>
+        <nav class="main-nav">
+          <a class="active-link" href="admin-dashboard.html">Dashboard</a>
+          <a href="admin-users.html">Users</a>
+          <a href="admin-accounts.html">Accounts</a>
+        </nav>
+        <div class="admin-sidebar-meta">
+          <p id="sessionInfo" class="session-chip">Admin session</p>
+          <button id="logoutButton" class="btn btn-secondary" type="button">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard-main">
+      <section class="dashboard-hero admin-dashboard-hero">
+        <div class="container">
+          <div class="admin-hero-row">
+            <div>
+              <p class="kicker">Admin Workspace</p>
+              <h1 id="welcomeTitle">Operations Dashboard</h1>
+              <p class="lead">Monitor platform metrics, transaction flow, system health, recent activity, and finance alerts from one admin-only workspace.</p>
+            </div>
+            <div class="admin-hero-actions">
+              <p id="adminDashboardUpdatedAt" class="dashboard-updated-at">Waiting for dashboard sync...</p>
+              <button id="adminDashboardRefresh" class="btn btn-primary" data-action="admin-dashboard" type="button">Refresh Dashboard</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="features admin-dashboard-section">
+        <div class="container admin-dashboard-layout">
+          <article class="card dashboard-section-card section-full">
+            <div class="dashboard-section-heading">
+              <div>
+                <p class="section-tag">Top Metrics</p>
+                <h3>Key Metrics</h3>
+              </div>
+              <p id="adminDashboardStatus" class="dashboard-status">Loading dashboard...</p>
+            </div>
+            <div id="adminMetricGrid" class="admin-metric-grid">
+              <p class="dashboard-empty">Metrics will appear here after the first sync.</p>
+            </div>
+          </article>
+
+          <article class="card dashboard-section-card">
+            <div class="dashboard-section-heading">
+              <div>
+                <p class="section-tag">Today / This Month</p>
+                <h3>Snapshot</h3>
+              </div>
+            </div>
+            <div id="adminSnapshotGrid" class="admin-snapshot-grid">
+              <p class="dashboard-empty">Snapshot metrics are loading.</p>
+            </div>
+          </article>
+
+          <article class="card dashboard-section-card">
+            <div class="dashboard-section-heading">
+              <div>
+                <p class="section-tag">Reliability</p>
+                <h3>System Health</h3>
+              </div>
+            </div>
+            <div id="adminHealthGrid" class="admin-health-grid">
+              <p class="dashboard-empty">System health checks are loading.</p>
+            </div>
+          </article>
+
+          <article class="card dashboard-section-card">
+            <div class="dashboard-section-heading">
+              <div>
+                <p class="section-tag">Latest Transactions</p>
+                <h3>Recent Activity</h3>
+              </div>
+            </div>
+            <div id="adminRecentTransactions" class="dashboard-table-slot">
+              <p class="dashboard-empty">Recent transactions are loading.</p>
+            </div>
+          </article>
+
+          <article class="card dashboard-section-card">
+            <div class="dashboard-section-heading">
+              <div>
+                <p class="section-tag">New Registrations</p>
+                <h3>Recent Users</h3>
+              </div>
+            </div>
+            <div id="adminRecentUsers" class="dashboard-table-slot">
+              <p class="dashboard-empty">Recent users are loading.</p>
+            </div>
+          </article>
+
+          <article class="card dashboard-section-card">
+            <div class="dashboard-section-heading">
+              <div>
+                <p class="section-tag">Transfer Feed</p>
+                <h3>Recent Transfers</h3>
+              </div>
+            </div>
+            <div id="adminRecentTransfers" class="dashboard-table-slot">
+              <p class="dashboard-empty">Recent transfers are loading.</p>
+            </div>
+          </article>
+
+          <article class="card dashboard-section-card section-full">
+            <div class="dashboard-section-heading">
+              <div>
+                <p class="section-tag">Finance Alerts</p>
+                <h3>Watchlist</h3>
+              </div>
+            </div>
+            <div class="admin-alert-grid">
+              <section class="alert-column">
+                <div class="alert-column-head">
+                  <h4>Failed Transfers</h4>
+                  <p>Retry or investigate failed payout attempts.</p>
+                </div>
+                <div id="adminFailedTransfers" class="alert-list">
+                  <p class="dashboard-empty">Failed transfer alerts are loading.</p>
+                </div>
+              </section>
+
+              <section class="alert-column">
+                <div class="alert-column-head">
+                  <h4>Low Balance Issues</h4>
+                  <p>Accounts below the configured admin threshold.</p>
+                </div>
+                <div id="adminLowBalances" class="alert-list">
+                  <p class="dashboard-empty">Low balance alerts are loading.</p>
+                </div>
+              </section>
+
+              <section class="alert-column">
+                <div class="alert-column-head">
+                  <h4>Suspicious / High Value</h4>
+                  <p>Transactions above the monitoring threshold.</p>
+                </div>
+                <div id="adminSuspiciousTransactions" class="alert-list">
+                  <p class="dashboard-empty">High value alerts are loading.</p>
+                </div>
+              </section>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year"></span> FinTrack. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

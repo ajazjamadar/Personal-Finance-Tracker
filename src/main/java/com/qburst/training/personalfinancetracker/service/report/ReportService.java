@@ -10,4 +10,5 @@ public interface ReportService {
     List<ReportDto.MonthlyExpense> getMonthlyExpenses(Long userId);
     List<ReportDto.CategoryExpense> getExpenseByCategory(Long userId);
     ReportDto.IncomeExpenseSummary getIncomeExpenseSummary(Long userId);
+    ReportDto.Overview getOverview(Long userId);
 }

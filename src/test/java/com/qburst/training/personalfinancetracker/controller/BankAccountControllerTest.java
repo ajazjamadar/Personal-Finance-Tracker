@@ -128,25 +128,6 @@ class BankAccountControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/bank-accounts/search: should return accounts by bank name")
-    void searchAccounts_byBankName_shouldReturn200() throws Exception {
-        mockMvc.perform(get("/api/bank-accounts/search")
-                        .param("bankName", "HDFC Bank"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].bankName").value("HDFC Bank"));
-    }
-
-    @Test
-    @DisplayName("GET /api/bank-accounts/search: should return accounts by full name")
-    void searchAccounts_byFullName_shouldReturn200() throws Exception {
-        mockMvc.perform(get("/api/bank-accounts/search")
-                        .param("fullName", "Ejaz"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
-    }
-
-    @Test
     @DisplayName("DELETE /api/bank-accounts/{id}: should delete account and return 204")
     void deleteBankAccount_shouldReturn204() throws Exception {
         mockMvc.perform(delete("/api/bank-accounts/{id}", bankAccount.getId()))

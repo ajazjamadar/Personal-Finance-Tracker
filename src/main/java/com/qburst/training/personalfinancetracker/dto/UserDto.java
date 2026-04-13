@@ -53,4 +53,23 @@ public class UserDto {
             @Size(min = 6, message = "Password must contain at least 6 characters")
             String password
     ) {}
+
+    @Schema(name = "AdminUserUpdateRequest")
+    public record AdminUpdateRequest(
+            @NotBlank(message = "Username is required")
+            @Size(min = 3, max = 100)
+            String username,
+
+            @NotBlank(message = "Email is required")
+            @Email(message = "Email must be valid")
+            String email,
+
+            @NotBlank(message = "Full name is required")
+            String fullName,
+
+            @Size(min = 6, message = "Password must contain at least 6 characters")
+            String password,
+
+            UserRole role
+    ) {}
 }

@@ -86,7 +86,7 @@ public class JwtService {
     }
 
     public UserRole extractRole(String token) {
-        return UserRole.valueOf(String.valueOf(extractClaims(token).get("role")));
+        return UserRole.fromValue(String.valueOf(extractClaims(token).get("role")));
     }
 
     public String extractEmail(String token) {

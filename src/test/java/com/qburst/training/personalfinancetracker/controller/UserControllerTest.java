@@ -46,7 +46,7 @@ class UserControllerTest {
     @DisplayName("POST/api/users: should create a user and return 201")
     void createUser_shouldReturn201() throws Exception{
         UserDto.Request request = new UserDto.Request(
-                "newuser", "new@qburst.com", "password123", "New User"
+                "newuser", "new@qburst.com", "password123", "New User", null
         );
 
         mockMvc.perform(post("/api/users")
@@ -62,7 +62,7 @@ class UserControllerTest {
     @DisplayName("POST /api/users : should return 409 when email already exists")
     void createUser_shouldFail_whenEmailDuplicate() throws Exception {
         UserDto.Request request = new UserDto.Request(
-                                "another", "ejaz@email.com", "password123", "Another User");
+                                "another", "ejaz@email.com", "password123", "Another User", null);
 
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)

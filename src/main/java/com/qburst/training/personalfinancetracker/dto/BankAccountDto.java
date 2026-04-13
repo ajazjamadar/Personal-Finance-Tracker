@@ -42,4 +42,20 @@ public class BankAccountDto {
             String accountNumber,
             BigDecimal balance
     ) {}
+
+    @Schema(name = "AdminBankAccountUpdateRequest")
+    public record AdminUpdateRequest(
+            @NotNull(message = "User ID is required")
+            Long userId,
+
+            @NotBlank(message = "Bank name is required")
+            String bankName,
+
+            @NotBlank(message = "Account number is required")
+            String accountNumber,
+
+            @NotNull(message = "Balance is required")
+            @PositiveOrZero(message = "Balance cannot be negative")
+            BigDecimal balance
+    ) {}
 }

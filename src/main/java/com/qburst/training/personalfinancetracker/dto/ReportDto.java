@@ -1,6 +1,7 @@
 package com.qburst.training.personalfinancetracker.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class ReportDto {
 
@@ -19,5 +20,12 @@ public class ReportDto {
             BigDecimal totalIncome,
             BigDecimal totalExpense,
             BigDecimal netSavings
+    ) {}
+
+    public record Overview(
+            List<BankAccountDto.BalanceSummary> bankBalances,
+            List<MonthlyExpense> monthlyExpenses,
+            List<CategoryExpense> expenseByCategory,
+            IncomeExpenseSummary incomeExpenseSummary
     ) {}
 }

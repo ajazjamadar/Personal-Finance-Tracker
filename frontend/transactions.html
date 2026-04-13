@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinTrack | Transactions</title>
-  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg" />
-  <link rel="shortcut icon" href="assets/fintrack-icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg?v=3" />
+  <link rel="shortcut icon" href="assets/fintrack-icon.svg?v=3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="page-sidebar">
@@ -16,7 +16,7 @@
   <header class="site-header">
     <div class="container header-row">
       <a class="brand" href="users.html" aria-label="FinTrack users">
-        <img src="assets/fintrack-logo.svg" alt="FinTrack" />
+        <img src="assets/fintrack-logo.svg?v=3" alt="FinTrack" />
       </a>
       <nav class="main-nav">
         <a href="users.html">Users</a>
@@ -44,7 +44,15 @@
           <div class="form-grid single">
             <input id="tx-income-bankAccountId" type="number" placeholder="Income Bank Account ID" />
             <input id="tx-income-amount" type="number" step="0.01" placeholder="Income Amount" />
-            <input id="tx-income-category" placeholder="Income Category" />
+            <select id="tx-income-category">
+              <option value="" selected>Select Income Category</option>
+              <option value="Salary">Salary</option>
+              <option value="Freelance">Freelance</option>
+              <option value="Business">Business</option>
+              <option value="Investment">Investment</option>
+              <option value="Gift">Gift</option>
+              <option value="Other">Other</option>
+            </select>
             <input id="tx-income-description" placeholder="Income Description" />
           </div>
           <div class="btn-row">
@@ -57,7 +65,17 @@
           <div class="form-grid single">
             <input id="tx-expense-bankAccountId" type="number" placeholder="Expense Bank Account ID" />
             <input id="tx-expense-amount" type="number" step="0.01" placeholder="Expense Amount" />
-            <input id="tx-expense-category" placeholder="Expense Category" />
+            <select id="tx-expense-category">
+              <option value="" selected>Select Expense Category</option>
+              <option value="Food">Food</option>
+              <option value="Travel">Travel</option>
+              <option value="Bills">Bills</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Health">Health</option>
+              <option value="Education">Education</option>
+              <option value="Others">Others</option>
+            </select>
             <input id="tx-expense-description" placeholder="Expense Description" />
           </div>
           <div class="btn-row">
@@ -78,22 +96,56 @@
         </article>
 
         <article class="card op-card">
-          <h3>Bank Expense</h3>
-          <div class="form-grid single">
-            <input id="tx-bankexp-bankAccountId" type="number" placeholder="Bank Expense Account ID" />
-            <input id="tx-bankexp-amount" type="number" step="0.01" placeholder="Bank Expense Amount" />
-            <input id="tx-bankexp-category" placeholder="Bank Expense Category" />
-            <input id="tx-bankexp-description" placeholder="Bank Expense Description" />
-          </div>
-          <div class="btn-row">
-            <button class="btn btn-primary" data-action="record-bank-expense" type="button">Bank Expense</button>
-          </div>
-        </article>
-
-        <article class="card op-card">
           <h3>Transaction History</h3>
           <div class="form-grid single">
             <input id="tx-user-list" type="number" placeholder="User ID for history" />
+            <div class="form-grid">
+              <input id="tx-filter-fromDate" type="date" placeholder="From date" />
+              <input id="tx-filter-toDate" type="date" placeholder="To date" />
+              <select id="tx-filter-transactionType">
+                <option value="" selected>Transaction Type (All)</option>
+                <option value="CREDIT">CREDIT</option>
+                <option value="DEBIT">DEBIT</option>
+              </select>
+              <input id="tx-filter-minAmount" type="number" step="0.01" placeholder="Min amount" />
+              <input id="tx-filter-maxAmount" type="number" step="0.01" placeholder="Max amount" />
+              <select id="tx-filter-status">
+                <option value="" selected>Status (All)</option>
+                <option value="SUCCESS">SUCCESS</option>
+                <option value="FAILED">FAILED</option>
+                <option value="PENDING">PENDING</option>
+                <option value="INITIATED">INITIATED</option>
+                <option value="SENT">SENT</option>
+              </select>
+              <input id="tx-filter-category" list="tx-category-options" placeholder="Category contains..." />
+              <datalist id="tx-category-options">
+                <option value="Salary"></option>
+                <option value="Freelance"></option>
+                <option value="Business"></option>
+                <option value="Investment"></option>
+                <option value="Gift"></option>
+                <option value="Food"></option>
+                <option value="Travel"></option>
+                <option value="Bills"></option>
+                <option value="Shopping"></option>
+                <option value="Entertainment"></option>
+                <option value="Health"></option>
+                <option value="Education"></option>
+                <option value="ATM"></option>
+                <option value="Transfer"></option>
+                <option value="Other"></option>
+                <option value="Others"></option>
+              </datalist>
+              <select id="tx-filter-paymentMethod">
+                <option value="" selected>Payment Method (All)</option>
+                <option value="UPI">UPI</option>
+                <option value="CARD">Card</option>
+                <option value="NET_BANKING">Net Banking</option>
+                <option value="WALLET">Wallet</option>
+              </select>
+              <input id="tx-filter-accountId" type="number" placeholder="Account ID filter" />
+              <input id="tx-filter-receiver" placeholder="Merchant / Receiver" />
+            </div>
           </div>
           <div class="btn-row">
             <button class="btn btn-secondary" data-action="list-transactions" type="button">Transaction History</button>

@@ -39,7 +39,7 @@ public class BankAccount {
     private LocalDateTime createdAt;
 
     @PrePersist
-    protected void onCreate() {
+    private void onCreate() {
         createdAt = LocalDateTime.now();
         if (balance == null) balance = BigDecimal.ZERO;
     }

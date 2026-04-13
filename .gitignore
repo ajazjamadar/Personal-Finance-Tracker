@@ -30,6 +30,6 @@ build/
 !**/src/test/**/build/
 .vscode/
 
+# Local environment secrets
 .env
-.envexample
 

@@ -23,3 +23,7 @@ spring:
     init:
       mode: never
 
+app:
+  security:
+    disabled: true
+

@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinTrack | Accounts</title>
-  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg" />
-  <link rel="shortcut icon" href="assets/fintrack-icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg?v=3" />
+  <link rel="shortcut icon" href="assets/fintrack-icon.svg?v=3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="page-sidebar page-accounts">
@@ -16,13 +16,13 @@
   <header class="site-header">
     <div class="container header-row">
       <a class="brand" href="users.html" aria-label="FinTrack users">
-        <img src="assets/fintrack-logo.svg" alt="FinTrack" />
+        <img src="assets/fintrack-logo.svg?v=3" alt="FinTrack" />
       </a>
       <nav class="main-nav">
         <a href="users.html">Users</a>
         <a class="active-link" href="accounts.html">Accounts</a>
-        <a href="transactions.html">Transactions</a>
-        <a href="transfers.html">Transfers</a>
+        <a class="user-only-nav" href="transactions.html">Transactions</a>
+        <a class="user-only-nav" href="transfers.html">Transfers</a>
         <a href="reports.html">Reports</a>
       </nav>
     </div>
@@ -33,36 +33,33 @@
       <div class="container">
         <p class="kicker">Accounts Module</p>
         <h1 id="welcomeTitle">Bank Account Operations</h1>
-        <p class="lead">Create, search, list, and delete bank accounts.</p>
+        <p id="accountsLead" class="lead">Create, fetch, list, and delete bank accounts.</p>
       </div>
     </section>
 
-    <section class="features">
+    <section id="accountsSelfWorkspace" class="features">
       <div class="container ops-grid two-col">
         <article class="card op-card">
-          <h3>Add Bank Account</h3>
+          <h3>Create Bank Account</h3>
           <div class="form-grid">
             <input id="ba-userId" type="number" placeholder="User ID" />
             <input id="ba-bankName" placeholder="Bank name" />
             <input id="ba-accountNumber" placeholder="Account number" />
             <input id="ba-initialBalance" type="number" step="0.01" placeholder="Initial balance" />
           </div>
-          <button class="btn btn-primary" data-action="create-bank-account" type="button">Add Bank Account</button>
+          <button class="btn btn-primary" data-action="create-bank-account" type="button">Create Bank Account</button>
         </article>
 
         <article class="card op-card">
           <h3>Account Queries</h3>
           <div class="form-grid">
-            <input id="ba-id" type="number" placeholder="Account ID" />
-            <input id="ba-user-list" type="number" placeholder="User ID for list" />
-            <input id="ba-search-bank" placeholder="Search by bank name" />
-            <input id="ba-search-user" placeholder="Search by user full name" />
+            <input id="ba-account-id" type="number" placeholder="Account ID" />
+            <input id="ba-user-list" type="number" placeholder="User ID for account list" />
             <input id="ba-delete-id" type="number" placeholder="Delete Account ID" />
           </div>
           <div class="btn-row">
             <button class="btn btn-secondary" data-action="get-bank-account" type="button">Get By ID</button>
-            <button class="btn btn-secondary" data-action="list-bank-accounts" type="button">List By User</button>
-            <button class="btn btn-secondary" data-action="search-bank-accounts" type="button">Search</button>
+            <button class="btn btn-secondary" data-action="list-bank-accounts" type="button">List Accounts</button>
             <button class="btn btn-danger" data-action="delete-bank-account" type="button">Delete</button>
           </div>
         </article>
@@ -71,6 +68,34 @@
           <h3>Response</h3>
           <p id="statusLine" class="status-line">Ready</p>
           <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="accountsAdminWorkspace" class="features" hidden>
+      <div class="container ops-grid">
+        <article class="card op-card">
+          <h3>View All Accounts</h3>
+          <p class="card-desc">Load all user bank accounts from the admin workspace.</p>
+          <button class="btn btn-secondary" data-action="admin-accounts" type="button">View All Accounts</button>
+        </article>
+
+        <article class="card op-card">
+          <h3>Update User Bank Account</h3>
+          <div class="form-grid">
+            <input id="admin-account-id" type="number" placeholder="Account ID" />
+            <input id="admin-account-user-id" type="number" placeholder="User ID" />
+            <input id="admin-account-bank-name" placeholder="Bank name" />
+            <input id="admin-account-number" placeholder="Account number" />
+            <input id="admin-account-balance" type="number" step="0.01" placeholder="Balance" />
+          </div>
+          <button class="btn btn-primary" data-action="admin-update-account" type="button">Update Account</button>
+        </article>
+
+        <article class="card op-card result-card module-result">
+          <h3>Response</h3>
+          <p id="statusLine" class="status-line">Ready</p>
+          <div id="result" class="result-box"><p class="result-empty">Run any admin account action to see results.</p></div>
         </article>
       </div>
     </section>
@@ -85,7 +110,7 @@
           <div class="footer-panels">
             <article class="footer-panel">
               <h4>Bank Accounts</h4>
-              <p>Create and manage account balances with simple search and list operations.</p>
+              <p>Create and manage account balances with simple fetch and list operations.</p>
             </article>
             <article class="footer-panel">
               <h4>Balance Confidence</h4>

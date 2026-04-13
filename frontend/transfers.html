@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinTrack | Transfers</title>
-  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg" />
-  <link rel="shortcut icon" href="assets/fintrack-icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg?v=3" />
+  <link rel="shortcut icon" href="assets/fintrack-icon.svg?v=3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="page-sidebar page-transfers">
@@ -16,7 +16,7 @@
   <header class="site-header">
     <div class="container header-row">
       <a class="brand" href="users.html" aria-label="FinTrack users">
-        <img src="assets/fintrack-logo.svg" alt="FinTrack" />
+        <img src="assets/fintrack-logo.svg?v=3" alt="FinTrack" />
       </a>
       <nav class="main-nav">
         <a href="users.html">Users</a>
@@ -33,36 +33,96 @@
       <div class="container">
         <p class="kicker">Transfers Module</p>
         <h1 id="welcomeTitle">Fund Transfer Operations</h1>
-        <p class="lead">Transfer funds to another account, mobile number, or UPI ID with optional self-transfer mode.</p>
+        <p class="lead">Initiate or mark sent transfers by deducting from source account and saving receiver details.</p>
       </div>
     </section>
 
     <section class="features">
       <div class="container ops-grid two-col">
-        <article class="card op-card">
+        <article class="card op-card transfer-op-card">
           <h3>Create Transfer</h3>
-          <div class="form-grid single">
-            <input id="tr-sourceAccountId" type="number" placeholder="Source Account ID" />
+          <p class="card-desc">Capture transfer intent like a banking app: choose route, enter receiver, and mark as INITIATED or SENT.</p>
 
-            <select id="tr-transferType">
-              <option value="ACCOUNT">Account</option>
-              <option value="MOBILE">Mobile Number</option>
-              <option value="UPI">UPI ID</option>
-            </select>
+          <div class="transfer-form">
+            <section class="transfer-block">
+              <h4 class="transfer-block-title">Pay From</h4>
+              <div class="transfer-grid two-col">
+                <label class="field-stack">
+                  <span>Source Account ID</span>
+                  <input id="tr-sourceAccountId" type="number" placeholder="Enter source account ID" />
+                </label>
+                <label class="field-stack">
+                  <span>Amount</span>
+                  <input id="tr-amount" type="number" step="0.01" placeholder="Enter amount" />
+                </label>
+              </div>
+            </section>
 
-            <label class="inline-check">
-              <input id="tr-selfTransfer" type="checkbox" />
-              <span>Self transfer</span>
-            </label>
+            <section class="transfer-block">
+              <h4 class="transfer-block-title">Transfer Route</h4>
+              <div class="transfer-grid three-col">
+                <label class="field-stack">
+                  <span>Transfer Type</span>
+                  <select id="tr-transferType">
+                    <option value="ACCOUNT">Account</option>
+                    <option value="MOBILE">Mobile Number</option>
+                    <option value="UPI">UPI ID</option>
+                  </select>
+                </label>
+                <label class="field-stack">
+                  <span>Payment Method</span>
+                  <select id="tr-paymentMethod">
+                    <option value="" selected>Auto</option>
+                    <option value="UPI">UPI</option>
+                    <option value="CARD">Card</option>
+                    <option value="NET_BANKING">Net Banking</option>
+                    <option value="WALLET">Wallet</option>
+                  </select>
+                </label>
+                <label class="field-stack">
+                  <span>Transfer Status</span>
+                  <select id="tr-transferStatus">
+                    <option value="SENT" selected>SENT</option>
+                    <option value="INITIATED">INITIATED</option>
+                  </select>
+                </label>
+              </div>
+              <p id="tr-routeHint" class="transfer-hint">Route set to account transfer. Enter destination account ID.</p>
+            </section>
 
-            <input id="tr-destinationAccountId" type="number" placeholder="Destination Account ID (for Account transfer)" />
-            <input id="tr-mobileNumber" placeholder="Mobile Number (for Mobile transfer)" />
-            <input id="tr-upiId" placeholder="UPI ID (for UPI transfer)" />
-            <input id="tr-description" placeholder="Description (optional)" />
-            <input id="tr-amount" type="number" step="0.01" placeholder="Transfer Amount" />
+            <section class="transfer-block">
+              <h4 class="transfer-block-title">Pay To</h4>
+              <div class="transfer-grid two-col">
+                <label class="field-stack" data-transfer-field="ACCOUNT">
+                  <span>Destination Account ID</span>
+                  <input id="tr-destinationAccountId" type="number" placeholder="Enter beneficiary account ID" />
+                </label>
+                <label class="field-stack" data-transfer-field="MOBILE">
+                  <span>Mobile Number</span>
+                  <input id="tr-mobileNumber" placeholder="Enter receiver mobile number" />
+                </label>
+                <label class="field-stack" data-transfer-field="UPI">
+                  <span>UPI ID</span>
+                  <input id="tr-upiId" placeholder="Enter UPI ID (example@bank)" />
+                </label>
+                <label class="field-stack">
+                  <span>Receiver / Merchant Name</span>
+                  <input id="tr-receiverName" placeholder="Enter receiver name" />
+                </label>
+                <label class="field-stack">
+                  <span>Description</span>
+                  <input id="tr-description" placeholder="Optional transfer note" />
+                </label>
+              </div>
+              <label class="inline-check transfer-inline-check">
+                <input id="tr-selfTransfer" type="checkbox" />
+                <span>Self transfer</span>
+              </label>
+            </section>
           </div>
+
           <div class="btn-row">
-            <button class="btn btn-primary" data-action="transfer-funds" type="button">Transfer Funds</button>
+            <button class="btn btn-primary" data-action="transfer-funds" type="button">Submit Transfer</button>
           </div>
         </article>
 

@@ -3,6 +3,8 @@ package com.qburst.training.personalfinancetracker.service.transfer;
 import com.qburst.training.personalfinancetracker.dto.TransferDto;
 import com.qburst.training.personalfinancetracker.entity.BankAccount;
 import com.qburst.training.personalfinancetracker.entity.Transaction;
+import com.qburst.training.personalfinancetracker.entity.Transaction.PaymentMethod;
+import com.qburst.training.personalfinancetracker.entity.Transaction.TransactionStatus;
 import com.qburst.training.personalfinancetracker.entity.Transaction.TransactionType;
 import com.qburst.training.personalfinancetracker.exception.InsufficientBalanceException;
 import com.qburst.training.personalfinancetracker.exception.ResourceNotFoundException;
@@ -12,7 +14,7 @@ import com.qburst.training.personalfinancetracker.security.AuthContextService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import java.util.Locale;
 
 @Service
 @Transactional(readOnly = true)
@@ -42,7 +44,6 @@ public class TransferServiceImpl implements TransferService {
         sourceAccount.setBalance(sourceAccount.getBalance().subtract(request.amount()));
         bankAccountRepository.save(sourceAccount);
 
-        BankAccount destinationAccount = null;
         String destinationValue;
 
         switch (request.transferType()) {
@@ -50,14 +51,7 @@ public class TransferServiceImpl implements TransferService {
                 if (request.destinationAccountId() == null) {
                     throw new IllegalArgumentException("Destination account ID is required for ACCOUNT transfer");
                 }
-                destinationAccount = getBankAccount(request.destinationAccountId());
-                if (selfTransfer && !Objects.equals(sourceAccount.getUser().getId(), destinationAccount.getUser().getId())) {
-                    throw new IllegalArgumentException("Self transfer must use your own destination account");
-                }
-
-                destinationAccount.setBalance(destinationAccount.getBalance().add(request.amount()));
-                bankAccountRepository.save(destinationAccount);
-                destinationValue = destinationAccount.getAccountNumber();
+                destinationValue = String.valueOf(request.destinationAccountId());
             }
             case MOBILE -> {
                 if (request.mobileNumber() == null || request.mobileNumber().isBlank()) {
@@ -79,15 +73,19 @@ public class TransferServiceImpl implements TransferService {
         transaction.setTransactionType(TransactionType.TRANSFER);
         transaction.setAmount(request.amount());
         transaction.setSourceBankAccount(sourceAccount);
-        transaction.setDestBankAccount(destinationAccount);
+        transaction.setDestBankAccount(null);
         transaction.setTransferType(Transaction.TransferType.valueOf(request.transferType().name()));
         transaction.setSelfTransfer(selfTransfer);
         transaction.setDestinationValue(destinationValue);
+        transaction.setStatus(resolveTransferStatus(request.transferStatus()));
+        transaction.setCategoryName("Transfer");
+        transaction.setReceiverName(resolveReceiverName(request.receiverName(), destinationValue));
+        transaction.setPaymentMethod(resolvePaymentMethod(request.paymentMethod(), request.transferType()));
         transaction.setDescription(request.description() == null || request.description().isBlank()
                 ? "Transfer via " + request.transferType().name()
                 : request.description());
 
-        return toResponse(transactionRepository.save(transaction));
+        return toResponse(transactionRepository.save(transaction), request.destinationAccountId());
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────
@@ -108,17 +106,51 @@ public class TransferServiceImpl implements TransferService {
         }
     }
 
-    private TransferDto.Response toResponse(Transaction tx) {
+    private TransferDto.Response toResponse(Transaction tx, Long requestedDestinationAccountId) {
+        Long destinationAccountId = tx.getDestBankAccount() == null
+                ? requestedDestinationAccountId
+                : tx.getDestBankAccount().getId();
         return new TransferDto.Response(
                 tx.getId(),
                 tx.getTransactionType().name(),
                 tx.getTransferType() == null ? null : tx.getTransferType().name(),
                 tx.getSelfTransfer(),
                 tx.getSourceBankAccount() == null ? null : tx.getSourceBankAccount().getId(),
-                tx.getDestBankAccount() == null ? null : tx.getDestBankAccount().getId(),
+                destinationAccountId,
                 tx.getDestinationValue(),
+                tx.getReceiverName(),
+                tx.getPaymentMethod() == null ? null : tx.getPaymentMethod().name(),
+                tx.getStatus() == null ? null : tx.getStatus().name(),
                 tx.getAmount(),
                 tx.getDescription(),
                 tx.getCreatedAt());
+    }
+
+    private PaymentMethod resolvePaymentMethod(String paymentMethod, TransferDto.TransferType transferType) {
+        if (paymentMethod != null && !paymentMethod.isBlank()) {
+            return PaymentMethod.valueOf(paymentMethod.trim().toUpperCase(Locale.ROOT).replace(' ', '_'));
+        }
+        return switch (transferType) {
+            case ACCOUNT -> PaymentMethod.NET_BANKING;
+            case MOBILE, UPI -> PaymentMethod.UPI;
+        };
+    }
+
+    private TransactionStatus resolveTransferStatus(String transferStatus) {
+        if (transferStatus == null || transferStatus.isBlank()) {
+            return TransactionStatus.SENT;
+        }
+        TransactionStatus status = TransactionStatus.valueOf(transferStatus.trim().toUpperCase(Locale.ROOT));
+        if (status != TransactionStatus.INITIATED && status != TransactionStatus.SENT) {
+            throw new IllegalArgumentException("Transfer status must be INITIATED or SENT");
+        }
+        return status;
+    }
+
+    private String resolveReceiverName(String receiverName, String fallback) {
+        if (receiverName == null || receiverName.isBlank()) {
+            return fallback;
+        }
+        return receiverName.trim();
     }
 }

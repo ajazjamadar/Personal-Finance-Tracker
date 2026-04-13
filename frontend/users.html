@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinTrack | Users</title>
-  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg" />
-  <link rel="shortcut icon" href="assets/fintrack-icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg?v=3" />
+  <link rel="shortcut icon" href="assets/fintrack-icon.svg?v=3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="page-sidebar">
@@ -16,13 +16,13 @@
   <header class="site-header">
     <div class="container header-row">
       <a class="brand" href="users.html" aria-label="FinTrack users">
-        <img src="assets/fintrack-logo.svg" alt="FinTrack" />
+        <img src="assets/fintrack-logo.svg?v=3" alt="FinTrack" />
       </a>
       <nav class="main-nav">
         <a class="active-link" href="users.html">Users</a>
         <a href="accounts.html">Accounts</a>
-        <a href="transactions.html">Transactions</a>
-        <a href="transfers.html">Transfers</a>
+        <a class="user-only-nav" href="transactions.html">Transactions</a>
+        <a class="user-only-nav" href="transfers.html">Transfers</a>
         <a href="reports.html">Reports</a>
       </nav>
     </div>
@@ -33,11 +33,11 @@
       <div class="container">
         <p class="kicker">Users Module</p>
         <h1 id="welcomeTitle">Profile Overview</h1>
-        <p class="lead">Your profile details are fetched automatically after login.</p>
+        <p id="usersLead" class="lead">Your profile details are fetched automatically after login.</p>
       </div>
     </section>
 
-    <section class="features">
+    <section id="usersSelfWorkspace" class="features">
       <div class="container ops-grid two-col">
         <article class="card op-card profile-card-only">
           <h3>PERSONAL DETAILS</h3>
@@ -74,6 +74,50 @@
             <input id="edit-password" type="password" placeholder="New password (optional)" />
           </div>
           <button class="btn btn-primary" data-action="update-user" type="button">Update Profile</button>
+        </article>
+      </div>
+    </section>
+
+    <section id="usersAdminWorkspace" class="features" hidden>
+      <div class="container ops-grid">
+        <article class="card op-card">
+          <h3>View All Users</h3>
+          <p class="card-desc">Load all user profiles from the admin workspace.</p>
+          <button class="btn btn-secondary" data-action="admin-users" type="button">View All Users</button>
+        </article>
+
+        <article class="card op-card">
+          <h3>Create User Profile</h3>
+          <div class="form-grid">
+            <input id="admin-create-username" placeholder="Username" />
+            <input id="admin-create-email" placeholder="Email" />
+            <input id="admin-create-fullname" placeholder="Full name" />
+            <input id="admin-create-password" type="password" placeholder="Password" />
+          </div>
+          <button class="btn btn-primary" data-action="admin-create-user" type="button">Create User</button>
+        </article>
+
+        <article class="card op-card">
+          <h3>Update User Profile</h3>
+          <div class="form-grid">
+            <input id="admin-update-id" type="number" placeholder="User ID" />
+            <input id="admin-update-username" placeholder="Username" />
+            <input id="admin-update-email" placeholder="Email" />
+            <input id="admin-update-fullname" placeholder="Full name" />
+            <input id="admin-update-password" type="password" placeholder="New password (optional)" />
+            <select id="admin-update-role">
+              <option value="">Keep current role</option>
+              <option value="USER">USER</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" data-action="admin-update-user" type="button">Update User</button>
+        </article>
+
+        <article class="card op-card result-card module-result">
+          <h3>Response</h3>
+          <p id="statusLine" class="status-line">Ready</p>
+          <div id="result" class="result-box"><p class="result-empty">Run any admin user action to see results.</p></div>
         </article>
       </div>
     </section>

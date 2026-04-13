@@ -6,15 +6,18 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/transactions")
-@Tag(name = "Transactions", description = "Record account income, expenses, ATM withdrawals and bank payments")
+@Tag(name = "Transactions", description = "Record account income, expenses, and ATM withdrawals")
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -50,21 +53,25 @@ public class TransactionController {
                 .body(transactionService.recordAtmWithdrawal(request));
     }
 
-    @PostMapping("/bank-expense")
-    @Operation(summary = "Bank expense payment")
-    @ApiResponse(responseCode = "201", description = "Bank expense recorded")
-    public ResponseEntity<TransactionDto.Response> recordBankExpense(
-            @Valid @RequestBody TransactionDto.Request request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(transactionService.recordBankExpense(request));
-    }
-
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get transaction history for a user")
     @ApiResponse(responseCode = "200", description = "Transactions retrieved")
     public ResponseEntity<List<TransactionDto.Response>> getTransactionHistory(
-            @PathVariable Long userId) {
-        return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
+            @PathVariable Long userId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) TransactionDto.HistoryTransactionType transactionType,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            @RequestParam(required = false) com.qburst.training.personalfinancetracker.entity.Transaction.TransactionStatus status,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) com.qburst.training.personalfinancetracker.entity.Transaction.PaymentMethod paymentMethod,
+            @RequestParam(required = false) Long accountId,
+            @RequestParam(required = false) String receiver) {
+        TransactionDto.HistoryFilter filter = new TransactionDto.HistoryFilter(
+                fromDate, toDate, transactionType, minAmount, maxAmount,
+                status, category, paymentMethod, accountId, receiver);
+        return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId, filter));
     }
 
     @GetMapping("/{id}")

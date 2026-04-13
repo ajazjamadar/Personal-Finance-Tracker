@@ -3,19 +3,24 @@ package com.qburst.training.personalfinancetracker.service.transaction;
 import com.qburst.training.personalfinancetracker.dto.TransactionDto;
 import com.qburst.training.personalfinancetracker.entity.BankAccount;
 import com.qburst.training.personalfinancetracker.entity.Transaction;
+import com.qburst.training.personalfinancetracker.entity.Transaction.PaymentMethod;
+import com.qburst.training.personalfinancetracker.entity.Transaction.TransactionStatus;
 import com.qburst.training.personalfinancetracker.entity.Transaction.TransactionType;
 import com.qburst.training.personalfinancetracker.entity.User;
 import com.qburst.training.personalfinancetracker.exception.InsufficientBalanceException;
 import com.qburst.training.personalfinancetracker.exception.ResourceNotFoundException;
 import com.qburst.training.personalfinancetracker.repository.BankAccountRepository;
 import com.qburst.training.personalfinancetracker.repository.TransactionRepository;
+import com.qburst.training.personalfinancetracker.repository.TransactionSpecifications;
 import com.qburst.training.personalfinancetracker.repository.UserRepository;
 import com.qburst.training.personalfinancetracker.security.AuthContextService;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @Transactional(readOnly = true)
@@ -46,7 +51,7 @@ public class TransactionServiceImpl implements TransactionService {
         return buildAndSave(
             account.getUser(), TransactionType.INCOME,
                 request.amount(), request.description(),
-            account, null);
+            account, null, request.category(), request.receiverName(), resolvePaymentMethod(request.paymentMethod(), PaymentMethod.NET_BANKING));
     }
 
     @Override
@@ -60,7 +65,7 @@ public class TransactionServiceImpl implements TransactionService {
         return buildAndSave(
             account.getUser(), TransactionType.EXPENSE,
                 request.amount(), request.description(),
-            account, null);
+            account, null, request.category(), request.receiverName(), resolvePaymentMethod(request.paymentMethod(), PaymentMethod.CARD));
     }
 
     @Override
@@ -74,30 +79,17 @@ public class TransactionServiceImpl implements TransactionService {
         return buildAndSave(
                 account.getUser(), TransactionType.ATM_WITHDRAWAL,
                 request.amount(), request.description(),
-            account, null);
+            account, null, "ATM", request.receiverName(), resolvePaymentMethod(request.paymentMethod(), PaymentMethod.WALLET));
     }
 
     @Override
-    @Transactional
-    public TransactionDto.Response recordBankExpense(TransactionDto.Request request) {
-        BankAccount account = getBankAccount(request.bankAccountId());
-        authContextService.ensureCanAccessUser(account.getUser().getId());
-        checkBalance(account.getBalance(), request.amount(), "Bank account");
-        account.setBalance(account.getBalance().subtract(request.amount()));
-        bankAccountRepository.save(account);
-        return buildAndSave(
-                account.getUser(), TransactionType.EXPENSE,
-                request.amount(), request.description(),
-            account, null);
-    }
-
-    @Override
-    public List<TransactionDto.Response> getTransactionsByUserId(Long userId) {
+    public List<TransactionDto.Response> getTransactionsByUserId(Long userId, TransactionDto.HistoryFilter filter) {
         Long effectiveUserId = authContextService.resolveUserId(userId);
-        if (!userRepository.existsById(effectiveUserId)) {
-            throw new ResourceNotFoundException("User not found with id: " + effectiveUserId);
-        }
-        return transactionRepository.findByUserIdOrderByCreatedAtDesc(effectiveUserId)
+        validateUserExistsById(effectiveUserId);
+        TransactionDto.HistoryFilter normalizedFilter = filter == null ? null : filter.normalized();
+        return transactionRepository.findAll(
+                        TransactionSpecifications.historyForUser(effectiveUserId, normalizedFilter),
+                        Sort.by(Sort.Direction.DESC, "createdAt"))
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -130,7 +122,10 @@ public class TransactionServiceImpl implements TransactionService {
             BigDecimal amount,
             String description,
             BankAccount sourceBankAccount,
-            BankAccount destBankAccount) {
+            BankAccount destBankAccount,
+            String categoryName,
+            String receiverName,
+            PaymentMethod paymentMethod) {
 
         Transaction tx = new Transaction();
         tx.setUser(user);
@@ -139,6 +134,10 @@ public class TransactionServiceImpl implements TransactionService {
         tx.setDescription(description);
         tx.setSourceBankAccount(sourceBankAccount);
         tx.setDestBankAccount(destBankAccount);
+        tx.setCategoryName(normalizeText(categoryName));
+        tx.setReceiverName(normalizeText(receiverName));
+        tx.setPaymentMethod(paymentMethod);
+        tx.setStatus(TransactionStatus.SUCCESS);
 
         return toResponse(transactionRepository.save(tx));
     }
@@ -151,6 +150,12 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
+    private void validateUserExistsById(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with id: " + userId);
+        }
+    }
+
     private BankAccount getBankAccount(Long bankAccountId) {
         return bankAccountRepository.findById(bankAccountId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -160,9 +165,34 @@ public class TransactionServiceImpl implements TransactionService {
     private TransactionDto.Response toResponse(Transaction tx) {
         return new TransactionDto.Response(
                 tx.getId(),
+                tx.getUser() == null ? null : tx.getUser().getId(),
                 tx.getTransactionType().name(),
+                tx.getTransferType() == null ? null : tx.getTransferType().name(),
+                tx.getSelfTransfer(),
+                tx.getSourceBankAccount() == null ? null : tx.getSourceBankAccount().getId(),
+                tx.getDestBankAccount() == null ? null : tx.getDestBankAccount().getId(),
+                tx.getDestinationValue(),
                 tx.getAmount(),
                 tx.getDescription(),
+                tx.getCategoryName(),
+                tx.getStatus() == null ? null : tx.getStatus().name(),
+                tx.getPaymentMethod() == null ? null : tx.getPaymentMethod().name(),
+                tx.getReceiverName(),
                 tx.getCreatedAt());
+    }
+
+    private PaymentMethod resolvePaymentMethod(String raw, PaymentMethod fallback) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        return PaymentMethod.valueOf(raw.trim().toUpperCase(Locale.ROOT).replace(' ', '_'));
+    }
+
+    private String normalizeText(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,16 +45,6 @@ public class BankAccountController {
     public ResponseEntity<List<BankAccountDto.Response>> getAccountsByUser(
             @PathVariable Long userId) {
         return ResponseEntity.ok(bankAccountService.getBankAccountsByUserId(userId));
-    }
-
-    @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Search accounts by bank name or user full name")
-    @ApiResponse(responseCode = "200", description = "Matching accounts retrieved")
-    public ResponseEntity<List<BankAccountDto.Response>> searchAccounts(
-            @RequestParam(required = false) String bankName,
-            @RequestParam(required = false) String fullName) {
-        return ResponseEntity.ok(bankAccountService.searchAccounts(bankName, fullName));
     }
 
     @DeleteMapping("/{id}")

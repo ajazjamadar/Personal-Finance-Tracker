@@ -41,6 +41,10 @@ function storeSession(authResponse) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(authResponse.user));
 }
 
+function workspaceLanding(mode) {
+  return mode === 'admin' ? 'admin-dashboard.html' : 'users.html';
+}
+
 function val(id) {
   return document.getElementById(id)?.value?.trim() || '';
 }
@@ -102,8 +106,9 @@ async function onDirectLoginSubmit(event, mode) {
 
     storeSession(authResponse);
     setStatus('Login successful. Redirecting to workspace...', true);
+    console.log('[DEBUG] Redirect mode:', mode, '| workspaceLanding:', workspaceLanding(mode));
     setTimeout(() => {
-      window.location.href = 'users.html';
+      window.location.href = workspaceLanding(mode);
     }, 500);
   } catch (error) {
     setStatus(error instanceof Error ? error.message : 'Direct login failed', false);
@@ -124,8 +129,9 @@ async function onVerifyOtpSubmit(event, mode) {
 
     storeSession(authResponse);
     setStatus('Login successful. Redirecting to workspace...', true);
+    console.log('[DEBUG] Redirect mode:', mode, '| workspaceLanding:', workspaceLanding(mode));
     setTimeout(() => {
-      window.location.href = 'users.html';
+      window.location.href = workspaceLanding(mode);
     }, 700);
   } catch (error) {
     setStatus(error instanceof Error ? error.message : 'OTP verification failed', false);

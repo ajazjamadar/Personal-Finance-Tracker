@@ -25,6 +25,12 @@ public class TransferDto {
 
             String upiId,
 
+            String receiverName,
+
+            String paymentMethod,
+
+            String transferStatus,
+
             @NotNull(message = "Amount is required")
             @Positive(message = "Amount must be positive")
             BigDecimal amount,
@@ -47,6 +53,9 @@ public class TransferDto {
             Long sourceAccountId,
             Long destinationAccountId,
             String destinationValue,
+            String receiverName,
+            String paymentMethod,
+            String transferStatus,
             BigDecimal amount,
             String description,
             LocalDateTime createdAt

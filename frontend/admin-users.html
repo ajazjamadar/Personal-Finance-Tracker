@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinTrack | Admin Users</title>
+  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg?v=3" />
+  <link rel="shortcut icon" href="assets/fintrack-icon.svg?v=3" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="page-sidebar" data-admin-workspace="users">
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container header-row">
+        <a class="brand" href="admin-dashboard.html" aria-label="FinTrack admin users">
+          <img src="assets/fintrack-logo.svg?v=3" alt="FinTrack" />
+        </a>
+        <nav class="main-nav">
+          <a href="admin-dashboard.html">Dashboard</a>
+          <a class="active-link" href="admin-users.html">Users</a>
+          <a href="admin-accounts.html">Accounts</a>
+        </nav>
+        <div class="admin-sidebar-meta">
+          <p id="sessionInfo" class="session-chip">Admin session</p>
+          <button id="logoutButton" class="btn btn-secondary" type="button">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard-main">
+      <section class="dashboard-hero">
+        <div class="container">
+          <p class="kicker">Admin Workspace</p>
+          <h1 id="welcomeTitle">Admin Users</h1>
+          <p class="lead">Create, update, and view user profiles in the admin workspace only.</p>
+        </div>
+      </section>
+
+      <section class="features">
+        <div class="container ops-grid">
+          <article class="card op-card">
+            <h3>View All Users</h3>
+            <p class="card-desc">Load all registered user profiles from the system.</p>
+            <button class="btn btn-secondary" data-action="admin-users" type="button">View All Users</button>
+          </article>
+
+          <article class="card op-card">
+            <h3>Create User Profile</h3>
+            <div class="form-grid">
+              <input id="admin-create-username" placeholder="Username" />
+              <input id="admin-create-email" placeholder="Email" />
+              <input id="admin-create-fullname" placeholder="Full name" />
+              <input id="admin-create-password" type="password" placeholder="Password" />
+            </div>
+            <button class="btn btn-primary" data-action="admin-create-user" type="button">Create User</button>
+          </article>
+
+          <article class="card op-card">
+            <h3>Update User Profile</h3>
+            <div class="form-grid">
+              <input id="admin-update-id" type="number" placeholder="User ID" />
+              <input id="admin-update-username" placeholder="Username" />
+              <input id="admin-update-email" placeholder="Email" />
+              <input id="admin-update-fullname" placeholder="Full name" />
+              <input id="admin-update-password" type="password" placeholder="New password (optional)" />
+              <select id="admin-update-role">
+                <option value="">Keep current role</option>
+                <option value="USER">USER</option>
+                <option value="ADMIN">ADMIN</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" data-action="admin-update-user" type="button">Update User</button>
+          </article>
+
+          <article class="card op-card result-card module-result">
+            <h3>Response</h3>
+            <p id="statusLine" class="status-line">Ready</p>
+            <div id="result" class="result-box"><p class="result-empty">Run any admin user action to see results.</p></div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year"></span> FinTrack. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

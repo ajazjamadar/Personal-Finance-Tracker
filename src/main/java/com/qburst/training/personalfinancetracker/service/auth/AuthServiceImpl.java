@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
                 request.fullName(),
                 UserRole.USER
         );
-        UserDto.Response created = userService.createUser(userRequest, UserRole.USER);
+        UserDto.Response created = userService.createUser(userRequest);
         return toSession(created);
     }
 

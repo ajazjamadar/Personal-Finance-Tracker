@@ -54,6 +54,20 @@ public class Transaction {
     @Column
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private TransactionStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", length = 20)
+    private PaymentMethod paymentMethod;
+
+    @Column(name = "category_name", length = 100)
+    private String categoryName;
+
+    @Column(name = "receiver_name", length = 150)
+    private String receiverName;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
@@ -61,6 +75,9 @@ public class Transaction {
     protected void onCreate() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+        if (status == null) {
+            status = TransactionStatus.SUCCESS;
         }
     }
 
@@ -75,5 +92,20 @@ public class Transaction {
         ACCOUNT,
         MOBILE,
         UPI
+    }
+
+    public enum TransactionStatus {
+        INITIATED,
+        SENT,
+        SUCCESS,
+        FAILED,
+        PENDING
+    }
+
+    public enum PaymentMethod {
+        UPI,
+        CARD,
+        NET_BANKING,
+        WALLET
     }
 }

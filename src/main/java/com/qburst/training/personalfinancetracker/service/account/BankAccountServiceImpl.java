@@ -82,24 +82,6 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public List<BankAccountDto.Response> searchAccounts(String bankName, String fullName) {
-        log.debug("Searching bank accounts — bankName='{}', fullName='{}'", bankName, fullName);
-
-        if (bankName != null && !bankName.isBlank()) {
-            return bankAccountRepository.findByBankName(bankName)
-                    .stream().map(this::toResponse).toList();
-        }
-        if (fullName != null && !fullName.isBlank()) {
-            return bankAccountRepository.findByUserFullName(fullName)
-                    .stream().map(this::toResponse).toList();
-        }
-        List<BankAccount> all = (List<BankAccount>) bankAccountRepository.findAll();
-        return all.stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    @Override
     @Transactional
     public void deleteBankAccount(Long id) {
         log.warn("Deleting bank account id={}", id);

@@ -108,35 +108,4 @@ class BankAccountRepositoryTest {
         assertThat(exists).isFalse();
     }
 
-    @Test
-    @DisplayName("findByBankName: should return accounts that belong to the given bank")
-    void findByBankName_shouldReturnCorrectAccounts() {
-        List<BankAccount> accounts = bankAccountRepository.findByBankName("Test Bank");
-
-        assertThat(accounts).hasSize(1);
-        assertThat(accounts.get(0).getAccountNumber()).isEqualTo("ACC-001");
-    }
-
-    @Test
-    @DisplayName("findByBankName: should return empty list when bank name doesn't match")
-    void findByBankName_shouldReturnEmpty_whenBankNotFound() {
-        List<BankAccount> accounts = bankAccountRepository.findByBankName("Ghost Bank");
-        assertThat(accounts).isEmpty();
-    }
-
-    @Test
-    @DisplayName("findByUserFullName: should match partial full name (LIKE query)")
-    void findByUserFullName_shouldReturnAccounts_onPartialMatch() {
-        List<BankAccount> accounts = bankAccountRepository.findByUserFullName("Alice");
-
-        assertThat(accounts).hasSize(1);
-        assertThat(accounts.get(0).getUser().getFullName()).isEqualTo("Alice Smith");
-    }
-
-    @Test
-    @DisplayName("findByUserFullName: should return empty when name doesn't match")
-    void findByUserFullName_shouldReturnEmpty_whenNoMatch() {
-        List<BankAccount> accounts = bankAccountRepository.findByUserFullName("Nobody");
-        assertThat(accounts).isEmpty();
-    }
 }

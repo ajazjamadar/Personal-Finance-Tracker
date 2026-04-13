@@ -26,13 +26,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto.Response createUser(UserDto.Request request) {
-        return createUser(request, request.role() == null ? UserRole.USER : request.role());
-    }
-
-    @Override
-    @Transactional
-    public UserDto.Response createUser(UserDto.Request request, UserRole enforcedRole) {
+    public UserDto.Response createUser(UserDto.Request request) throws DuplicateResourceException{
         if (userRepository.existsByUsername(request.username())) {
             throw new DuplicateResourceException("Username already exists: " + request.username());
         }
@@ -46,14 +40,14 @@ public class UserServiceImpl implements UserService {
                 .email(request.email())
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .fullName(request.fullName())
-            .role(enforcedRole)
+                .role(UserRole.USER)
                 .build();
 
         return toResponse(userRepository.save(user));
     }
 
     @Override
-    public UserDto.Response getUserById(Long id) {
+    public UserDto.Response getUserById(Long id) throws ResourceNotFoundException {
         authContextService.ensureCanAccessUser(id);
         return userRepository.findById(id)
                 .map(this::toResponse)
@@ -62,7 +56,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto.Response updateUser(Long id, UserDto.UpdateRequest request) {
+    public UserDto.Response updateUser(Long id, UserDto.UpdateRequest request) throws ResourceNotFoundException {
         authContextService.ensureCanAccessUser(id);
 
         User user = userRepository.findById(id)

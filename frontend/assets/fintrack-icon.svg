@@ -1,12 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FinTrack icon">
   <defs>
-    <linearGradient id="finBlueIcon" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#1d4ed8"/>
-      <stop offset="100%" stop-color="#38bdf8"/>
+    <linearGradient id="ftIconGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9bd0ff"/>
+      <stop offset="52%" stop-color="#5c9dff"/>
+      <stop offset="100%" stop-color="#345ff2"/>
+    </linearGradient>
+    <linearGradient id="ftIconFrame" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#11213d"/>
+      <stop offset="100%" stop-color="#060d1d"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="14" fill="#0f172a"/>
-  <path d="M11 47h22l-4-6h-8l7-8h6l5-5H24L11 47z" fill="url(#finBlueIcon)"/>
-  <path d="M35 22v29" stroke="url(#finBlueIcon)" stroke-width="4.5" stroke-linecap="round"/>
-  <path d="M40 21l14-5-3 11h6L38 43l4-9h-7z" fill="url(#finBlueIcon)"/>
+  <rect width="64" height="64" rx="18" fill="url(#ftIconFrame)"/>
+  <rect x="10" y="10" width="44" height="44" rx="14" fill="#0b1528" stroke="#284a88" stroke-opacity="0.45"/>
+  <rect x="18" y="38" width="6" height="8" rx="3" fill="url(#ftIconGlow)"/>
+  <rect x="28" y="31" width="6" height="15" rx="3" fill="url(#ftIconGlow)"/>
+  <rect x="38" y="24" width="6" height="22" rx="3" fill="url(#ftIconGlow)"/>
+  <path d="M18 36C25 33 30 29 35 25C39 22 43 18 46 15" fill="none" stroke="url(#ftIconGlow)" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M41 15H49V23" fill="none" stroke="url(#ftIconGlow)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

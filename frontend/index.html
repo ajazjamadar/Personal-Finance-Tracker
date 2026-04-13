@@ -4,89 +4,250 @@
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>FinTrack | Personal Finance Tracker</title>
-	<link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg" />
-	<link rel="shortcut icon" href="assets/fintrack-icon.svg" />
+	<link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg?v=3" />
+	<link rel="shortcut icon" href="assets/fintrack-icon.svg?v=3" />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
 	<link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body class="landing-page">
 	<div class="page-wrapper">
 	<header class="site-header">
 		<div class="container header-row">
 			<a class="brand" href="#top" aria-label="FinTrack home">
-				<img src="assets/fintrack-logo.svg" alt="FinTrack" />
+				<img src="assets/fintrack-logo.svg?v=3" alt="FinTrack" />
 			</a>
 			<nav class="main-nav">
-				<a href="#features">Features</a>
-				<a href="#about">About</a>
-				<a href="#start">Get Started</a>
+				<a href="#features">Platform</a>
+				<a href="#workflow">Workflow</a>
+				<a href="#about">Why FinTrack</a>
+				<a href="#launch">Launch</a>
 			</nav>
 		</div>
 	</header>
 
 	<main id="top">
-		<section class="hero">
-			<div class="container hero-grid">
+		<section class="hero landing-hero">
+			<div class="container hero-grid landing-hero-grid">
 				<div class="hero-copy">
+					<p class="hero-badge">Built for calm daily money decisions</p>
 					<p class="kicker">Personal Finance Tracker</p>
-					<h1>Track spending, grow savings, and stay in control.</h1>
+					<h1>One focused control center for accounts, spending, transfers, and reports.</h1>
 					<p class="lead">
-						FinTrack helps you manage bank accounts, transactions, transfers, and reports in one place.
-						Start simple and build stronger financial habits with clear insights.
+						FinTrack gives you a cleaner financial operating system: manage balances, record transactions,
+						run transfers, and review reports from one streamlined workspace designed for everyday clarity.
 					</p>
-					<div class="hero-actions" id="start">
+					<div class="hero-actions" id="launch">
 						<a class="btn btn-primary" href="user-login.html">Open Finance Workspace</a>
 						<a class="btn btn-secondary" href="admin-login.html">Open Admin Workspace</a>
 					</div>
+					<div class="hero-proof">
+						<span class="hero-proof-item">Accounts and live balances</span>
+						<span class="hero-proof-item">Transaction intelligence</span>
+						<span class="hero-proof-item">Transfers and reporting</span>
+					</div>
+					<div class="hero-stats">
+						<article class="hero-stat">
+							<strong>4</strong>
+							<span>core finance modules</span>
+						</article>
+						<article class="hero-stat">
+							<strong>1</strong>
+							<span>unified workflow</span>
+						</article>
+						<article class="hero-stat">
+							<strong>24/7</strong>
+							<span>clear visibility mindset</span>
+						</article>
+					</div>
 				</div>
 
-				<div class="hero-visual" aria-hidden="true">
-					<img
-						src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1200&q=80"
-						alt="Financial planning workspace"
-					/>
+				<div class="hero-visual landing-visual" aria-hidden="true">
+					<div class="dashboard-preview">
+						<div class="preview-topbar">
+							<div>
+								<p class="mini-kicker">Live overview</p>
+								<h3>Personal finance cockpit</h3>
+							</div>
+							<span class="preview-pill">Synced and ready</span>
+						</div>
+
+						<div class="preview-grid">
+							<article class="preview-card">
+								<p class="mini-kicker">Available balance</p>
+								<h4>$24,860</h4>
+								<p>Across linked bank accounts</p>
+							</article>
+							<article class="preview-card">
+								<p class="mini-kicker">This month</p>
+								<h4>+$3,420</h4>
+								<p>Net movement after expenses</p>
+							</article>
+							<article class="preview-card preview-card-wide">
+								<div class="preview-card-row">
+									<div>
+										<p class="mini-kicker">Recent activity</p>
+										<div class="preview-list">
+											<div class="preview-list-item">
+												<span class="preview-dot"></span>
+												<span>Salary credited</span>
+												<strong class="preview-amount">+$4,500</strong>
+											</div>
+											<div class="preview-list-item">
+												<span class="preview-dot preview-dot-soft"></span>
+												<span>Rent transfer sent</span>
+												<strong class="preview-amount">-$1,250</strong>
+											</div>
+											<div class="preview-list-item">
+												<span class="preview-dot preview-dot-muted"></span>
+												<span>Groceries categorized</span>
+												<strong class="preview-amount">-$220</strong>
+											</div>
+										</div>
+									</div>
+									<div class="preview-chart">
+										<p class="mini-kicker">Cashflow trend</p>
+										<div class="preview-bars">
+											<span style="height: 48%"></span>
+											<span style="height: 72%"></span>
+											<span style="height: 58%"></span>
+											<span style="height: 90%"></span>
+											<span style="height: 68%"></span>
+											<span style="height: 100%"></span>
+										</div>
+									</div>
+								</div>
+							</article>
+							<article class="preview-card">
+								<p class="mini-kicker">Transfers</p>
+								<h4>UPI, mobile, account</h4>
+								<p>Move money with route-specific clarity</p>
+							</article>
+							<article class="preview-card">
+								<p class="mini-kicker">Reports</p>
+								<h4>Overview on demand</h4>
+								<p>Track income vs expense without digging</p>
+							</article>
+						</div>
+
+						<p class="preview-footnote">Built to feel like a finance workspace, not a generic CRUD panel.</p>
+					</div>
 				</div>
 			</div>
 		</section>
 
-		<section class="features" id="features">
-			<div class="container cards">
-				<article class="card">
-					<h3>Unified Accounts</h3>
-					<p>Connect your bank accounts to view your money across dedicated workspace modules.</p>
-				</article>
-				<article class="card">
-					<h3>Expense Intelligence</h3>
-					<p>Categorize transactions and quickly identify where your monthly budget goes.</p>
-				</article>
-				<article class="card">
-					<h3>Simple Reports</h3>
-					<p>Generate readable financial summaries that support better everyday decisions.</p>
-				</article>
-			</div>
-		</section>
-
-		<section class="about" id="about">
-			<div class="container about-grid">
-				<div>
-					<p class="kicker">About FinTrack</p>
-					<h2>A practical tool for daily financial clarity.</h2>
+		<section class="landing-section" id="features">
+			<div class="container">
+				<div class="section-intro">
+					<p class="section-eyebrow">Platform modules</p>
+					<h2>Every major money flow is mapped into a clear, deliberate workspace.</h2>
 					<p>
-						FinTrack was designed for people who want a straightforward, reliable way to monitor income,
-						expenses, and transfers. Whether you’re managing personal spending or family budgets, it keeps
-						your financial activity organized and easy to understand.
+						Instead of scattering financial tasks across tabs and spreadsheets, FinTrack groups them into
+						practical modules that mirror how people actually manage their money day to day.
 					</p>
 				</div>
-				<div class="about-panel">
-					<h4>Why users choose FinTrack</h4>
-					<ul>
-						<li>Fast onboarding with clean workflow</li>
-						<li>Clear transaction visibility</li>
-						<li>Account, mobile, and UPI transfer support</li>
-						<li>Actionable report summaries</li>
-					</ul>
+
+				<div class="feature-showcase">
+					<article class="feature-card feature-card-wide">
+						<p class="mini-kicker">Accounts</p>
+						<h3>Start with the balance layer.</h3>
+						<p>Set up bank accounts, track opening balances, and keep every downstream action tied to a real source of truth.</p>
+						<ul class="feature-list">
+							<li>Create and review linked bank accounts</li>
+							<li>Keep balances visible before every transaction</li>
+							<li>Support both user and admin workflows</li>
+						</ul>
+					</article>
+
+					<article class="feature-card">
+						<p class="mini-kicker">Transactions</p>
+						<h3>Record the full story.</h3>
+						<p>Capture income, expenses, and withdrawals with enough structure to stay useful later.</p>
+					</article>
+
+					<article class="feature-card">
+						<p class="mini-kicker">Transfers</p>
+						<h3>Handle movement with confidence.</h3>
+						<p>Track destination type, transfer route, and sending state without losing operational clarity.</p>
+					</article>
+
+					<article class="feature-card feature-card-wide">
+						<p class="mini-kicker">Reports</p>
+						<h3>Turn records into decisions.</h3>
+						<p>Generate summaries for balances, category spending, and income-vs-expense trends from the same workspace.</p>
+						<div class="feature-note">Best for users who want visibility without spreadsheet fatigue.</div>
+					</article>
+				</div>
+			</div>
+		</section>
+
+		<section class="landing-section" id="workflow">
+			<div class="container landing-story-grid">
+				<article class="story-panel">
+					<p class="section-eyebrow">Workflow</p>
+					<h2>Move from account setup to financial clarity in a simple rhythm.</h2>
+					<div class="story-list">
+						<div class="story-step">
+							<span class="story-index">01</span>
+							<div class="story-copy">
+								<h3>Set up the accounts that matter</h3>
+								<p>Start with linked accounts and opening balances so every action has a grounded source.</p>
+							</div>
+						</div>
+						<div class="story-step">
+							<span class="story-index">02</span>
+							<div class="story-copy">
+								<h3>Record spending and money movement</h3>
+								<p>Capture income, expenses, ATM withdrawals, and transfers without losing context.</p>
+							</div>
+						</div>
+						<div class="story-step">
+							<span class="story-index">03</span>
+							<div class="story-copy">
+								<h3>Review reports when decisions matter</h3>
+								<p>Switch from raw history to meaningful summaries whenever you need a cleaner financial view.</p>
+							</div>
+						</div>
+					</div>
+				</article>
+
+				<aside class="spotlight-panel" id="about">
+					<p class="section-eyebrow">Why FinTrack</p>
+					<h2>Built for steady daily use, not just a pretty first impression.</h2>
+					<div class="spotlight-grid">
+						<article class="spotlight-item">
+							<strong>Focused user workspace</strong>
+							<span>Profile, transactions, transfers, and reports stay connected in one coherent flow.</span>
+						</article>
+						<article class="spotlight-item">
+							<strong>Admin oversight when needed</strong>
+							<span>Open a separate admin workspace for platform visibility and control.</span>
+						</article>
+						<article class="spotlight-item">
+							<strong>Clear visual hierarchy</strong>
+							<span>The interface is designed to make balances, outcomes, and recent activity easy to scan fast.</span>
+						</article>
+					</div>
+				</aside>
+			</div>
+		</section>
+
+		<section class="landing-cta">
+			<div class="container">
+				<div class="cta-shell">
+					<div class="cta-copy">
+						<p class="section-eyebrow">Launch your workspace</p>
+						<h2>Choose the workspace you need and start tracking with more confidence.</h2>
+						<p>
+							Open the finance workspace for day-to-day money management, or switch to the admin workspace
+							for higher-level operational visibility.
+						</p>
+					</div>
+					<div class="cta-actions">
+						<a class="btn btn-primary" href="user-login.html">Finance Workspace</a>
+						<a class="btn btn-secondary" href="admin-login.html">Admin Workspace</a>
+					</div>
 				</div>
 			</div>
 		</section>
@@ -94,25 +255,18 @@
 	</div>
 
 	<footer class="site-footer">
-		<div class="container">
-			<p>© <span id="year"></span> FinTrack. All rights reserved.</p>
-			<div class="footer-extra">
-				<div class="footer-grid">
-					<div class="footer-panels">
-						<article class="footer-panel">
-							<h4>Start Smart</h4>
-							<p>Build a simple daily routine for tracking money movement and balances.</p>
-						</article>
-						<article class="footer-panel">
-							<h4>Plan Monthly</h4>
-							<p>Use summaries to prepare savings goals and avoid overspending early.</p>
-						</article>
-					</div>
-					<div class="footer-photo">
-						<img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&q=80" alt="Personal finance planning" />
-					</div>
-				</div>
+		<div class="container landing-footer">
+			<div class="footer-brand">
+				<img src="assets/fintrack-logo.svg?v=3" alt="FinTrack" />
+				<p>One control center for accounts, activity, transfers, and reporting.</p>
 			</div>
+			<div class="footer-links">
+				<a href="#features">Platform</a>
+				<a href="#workflow">Workflow</a>
+				<a href="#about">Why FinTrack</a>
+				<a href="#launch">Launch</a>
+			</div>
+			<p class="footer-copy">© <span id="year"></span> FinTrack. All rights reserved.</p>
 		</div>
 	</footer>
 

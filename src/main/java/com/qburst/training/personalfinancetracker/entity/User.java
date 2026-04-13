@@ -27,7 +27,6 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserRole role;
 
@@ -44,7 +43,7 @@ public class User {
     private List<BankAccount> bankAccounts;
 
     @PrePersist
-    protected void onCreate() {
+    private void onCreate() {
         if (role == null) {
             role = UserRole.USER;
         }
@@ -53,7 +52,7 @@ public class User {
     }
 
     @PreUpdate
-    protected void onUpdate() {
+    private void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
 }

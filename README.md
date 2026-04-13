@@ -1,93 +1,453 @@
-# personal-finance-tracker
+# 💰 FinTrack — Personal Finance Tracker
 
+> A production-grade REST API built with Spring Boot 3, featuring JWT authentication, OTP-based login, real-time fund transfers, and financial analytics — backed by MySQL with Flyway migrations and containerised with Docker.
 
+---
 
-## Getting started
+## Table of Contents
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Domain Model](#domain-model)
+- [API Reference](#api-reference)
+- [Security Design](#security-design)
+- [Database Migrations](#database-migrations)
+- [Key Engineering Decisions](#key-engineering-decisions)
+- [Frontend](#frontend)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Docker Deployment](#docker-deployment)
+- [What's Next](#whats-next)
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+---
 
-## Add your files
+## Overview
 
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+FinTrack is a mini-banking proof-of-concept that lets users manage bank accounts, record income and expenses, transfer funds across accounts or to UPI/mobile numbers, and view financial reports. It is designed with a clean layered architecture — Controller → Service Interface → Service Implementation → Repository — and demonstrates real-world patterns such as optimistic locking, role-based access control, OTP verification, and centralised exception handling.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Language | Java 21 |
+| Framework | Spring Boot 3.4.3 |
+| Security | Spring Security 6, JWT (jjwt 0.12.6), BCrypt |
+| Persistence | Spring Data JPA (Hibernate), MySQL 8 |
+| Migrations | Flyway |
+| API Docs | SpringDoc OpenAPI / Swagger UI 2.8.3 |
+| Build | Maven (Maven Wrapper included) |
+| Containerisation | Docker, Docker Compose |
+| Utilities | Lombok 1.18.36 |
+| Mail | Mailgun HTTP API (pluggable, fail-open) |
+| Test DB | H2 (in-memory) |
+
+---
+
+## Architecture
 
 ```
-cd existing_repo
-git remote add origin https://code.qburst.com/ejazuddin/personal-finance-tracker.git
-git branch -M main
-git push -uf origin main
+┌─────────────────────────────────────────────────────┐
+│                   HTTP Clients                      │
+│          (Browser Frontend / Swagger UI)            │
+└────────────────────┬────────────────────────────────┘
+                     │
+         ┌───────────▼────────────┐
+         │  JWT Auth Filter       │  (validates Bearer token on every request)
+         └───────────┬────────────┘
+                     │
+         ┌───────────▼────────────┐
+         │      Controllers       │  REST endpoints, input validation (@Valid)
+         └───────────┬────────────┘
+                     │
+         ┌───────────▼────────────┐
+         │   Service Interfaces   │  Clean contracts (Interface + Impl pattern)
+         └───────────┬────────────┘
+                     │
+         ┌───────────▼────────────┐
+         │      Repositories      │  Spring Data JPA
+         └───────────┬────────────┘
+                     │
+         ┌───────────▼────────────┐
+         │    MySQL 8 Database    │  Schema managed by Flyway
+         └────────────────────────┘
 ```
 
-## Integrate with your tools
+Every service is split into an interface and an implementation class (e.g. `AuthService` / `AuthServiceImpl`), making components independently testable and swappable.
 
-* [Set up project integrations](https://code.qburst.com/ejazuddin/personal-finance-tracker/-/settings/integrations)
+---
 
-## Collaborate with your team
+## Project Structure
 
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+```
+personal-finance-tracker/
+├── src/main/java/com/qburst/training/personalfinancetracker/
+│   ├── PersonalFinanceTrackerApplication.java
+│   ├── config/
+│   │   ├── CorsConfig.java          # CORS rules
+│   │   ├── OpenApiConfig.java       # Swagger / OpenAPI setup
+│   │   └── SecurityConfig.java      # JWT filter chain, role guards
+│   ├── controller/
+│   │   ├── AuthController.java      # Register, login, OTP flows
+│   │   ├── UserController.java      # User CRUD
+│   │   ├── BankAccountController.java
+│   │   ├── TransactionController.java
+│   │   ├── TransferController.java
+│   │   ├── ReportController.java
+│   │   └── AdminController.java     # Admin-only endpoints
+│   ├── service/
+│   │   ├── auth/                    # AuthService + AuthServiceImpl
+│   │   ├── user/                    # UserService + UserServiceImpl
+│   │   ├── account/                 # BankAccountService + Impl
+│   │   ├── transaction/             # TransactionService + Impl
+│   │   ├── transfer/                # TransferService + Impl
+│   │   ├── report/                  # ReportService + Impl
+│   │   └── mail/                    # MailService + MailgunMailService
+│   ├── repository/                  # Spring Data JPA repositories
+│   ├── entity/                      # JPA entities
+│   ├── dto/                         # Inner record DTOs (Request / Response)
+│   ├── security/
+│   │   ├── JwtService.java          # Token generation and validation
+│   │   ├── JwtAuthenticationFilter.java
+│   │   ├── AuthContextService.java  # Current user resolver
+│   │   └── AuthPrincipal.java
+│   └── exception/
+│       ├── GlobalExceptionHandler.java
+│       ├── ResourceNotFoundException.java
+│       ├── InsufficientBalanceException.java
+│       └── DuplicateResourceException.java
+├── src/main/resources/
+│   ├── application.yml
+│   └── db/migration/                # Flyway SQL migrations V1–V19
+├── frontend/                        # Frontend source (HTML/CSS/JS)
+│   ├── index.html                   # Landing page
+│   ├── dashboard.js                 # Main workspace logic
+│   ├── auth.js                      # Auth helper
+│   ├── styles.css
+│   └── *.html                       # Accounts, Transactions, Transfers, Reports, Users, Admin pages
+├── Dockerfile
+├── docker-compose.yml
+└── pom.xml
+```
 
-## Test and Deploy
+---
 
-Use the built-in continuous integration in GitLab.
+## Domain Model
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+```
+users
+ ├── id, username, email, password_hash, full_name
+ ├── role (USER | ADMIN)
+ └── created_at, updated_at
 
-***
+banks                                    ← pre-seeded (HDFC, SBI, ICICI, Axis, Kotak)
+ └── id, bank_name, bank_code, created_at
 
-# Editing this README
+bank_accounts
+ ├── id, user_id → users, bank_id → banks
+ ├── account_number (unique), balance (DECIMAL 15,2)
+ └── version                            ← optimistic locking
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+categories
+ └── id, name, description
 
-## Suggestions for a good README
+transactions                             ← unified ledger for all money movements
+ ├── id, user_id, category_id
+ ├── source_bank_id, dest_bank_id        ← nullable; populated depending on type
+ ├── transaction_type  (INCOME | EXPENSE | ATM_WITHDRAWAL | TRANSFER)
+ ├── transfer_type     (ACCOUNT | MOBILE | UPI)   ← only for TRANSFER rows
+ ├── self_transfer (boolean)
+ ├── destination_value (account no / mobile / UPI string)
+ └── amount, description, created_at
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+login_otps
+ └── id, user_id, otp_hash (BCrypt), purpose, expires_at, used_at, created_at
+```
 
-## Name
-Choose a self-explaining name for your project.
+The `transactions` table acts as a **polymorphic ledger**: nullable foreign keys and the `transaction_type` / `transfer_type` discriminator columns keep all financial events in one place, simplifying reporting queries considerably.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+---
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## API Reference
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Authentication — `/api/auth`
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| POST | `/api/auth/register` | Create a new user account | No |
+| POST | `/api/auth/user/login` | Email + password login (USER) | No |
+| POST | `/api/auth/admin/login` | Email + password login (ADMIN) | No |
+| POST | `/api/auth/user/request-otp` | Send OTP to user's email | No |
+| POST | `/api/auth/user/verify-otp` | Verify OTP and receive JWT | No |
+| POST | `/api/auth/admin/request-otp` | Send OTP to admin's email | No |
+| POST | `/api/auth/admin/verify-otp` | Verify admin OTP and receive JWT | No |
+| GET | `/api/auth/me` | Return current session details | Yes |
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### Users — `/api/users`
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/users` | Create a user |
+| GET | `/api/users/{id}` | Get user profile |
+| PUT | `/api/users/{id}` | Update user profile |
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### Bank Accounts — `/api/bank-accounts`
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/bank-accounts` | Open a new bank account |
+| GET | `/api/bank-accounts/{id}` | Get account by ID |
+| GET | `/api/bank-accounts/user/{userId}` | Get all accounts for a user |
+| DELETE | `/api/bank-accounts/{id}` | Close a bank account |
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### Transactions — `/api/transactions`
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/transactions/income` | Record income into an account |
+| POST | `/api/transactions/expense` | Record an account expense |
+| POST | `/api/transactions/atm-withdrawal` | Record ATM cash withdrawal |
+| GET | `/api/transactions/user/{userId}` | Full transaction history for a user |
+| GET | `/api/transactions/{id}` | Get a single transaction |
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### Transfers — `/api/transfers`
 
-## License
-For open source projects, say how it is licensed.
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/transfers` | Transfer funds (ACCOUNT / MOBILE / UPI) |
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### Reports — `/api/reports`
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/reports/bank-balances` | Bank balance summary (filter by userId) |
+| GET | `/api/reports/monthly-expenses` | Month-wise expense totals |
+| GET | `/api/reports/expense-by-category` | Expense breakdown per category |
+| GET | `/api/reports/income-expense-summary` | Total income vs total expense |
+| GET | `/api/reports/overview` | Full financial overview |
+
+### Admin — `/api/admin` *(ADMIN role required)*
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/admin/dashboard` | Admin dashboard metrics, health, activity, and alerts |
+| GET | `/api/admin/users` | List all registered users |
+| POST | `/api/admin/users` | Create user profile from admin workspace |
+| PUT | `/api/admin/users/{id}` | Update user profile and role |
+| GET | `/api/admin/accounts` | List all bank accounts |
+| PUT | `/api/admin/accounts/{id}` | Update bank account details |
+| GET | `/api/admin/activities` | Recent transactions across all users |
+
+Interactive documentation is available at **`/swagger-ui.html`** when the server is running.
+
+---
+
+## Security Design
+
+```
+POST /api/auth/user/login
+  → validate email + password
+  → BCrypt.matches()
+  → issue JWT (HS256, configurable expiry)
+
+Every subsequent request:
+  Authorization: Bearer <token>
+  → JwtAuthenticationFilter extracts userId + role from claims
+  → SecurityContext populated → @PreAuthorize evaluated
+
+OTP flow (alternative to password):
+  POST /api/auth/user/request-otp
+    → generate 6-digit OTP
+    → BCrypt hash stored in login_otps
+    → plaintext sent via Mailgun
+
+  POST /api/auth/user/verify-otp
+    → look up latest unused OTP for user
+    → BCrypt.matches() against stored hash
+    → mark OTP as used (used_at = now)
+    → issue JWT
+```
+
+Key points:
+- Sessions are **stateless** — no HTTP session, no server-side state. Every request is authenticated via JWT.
+- OTPs are stored as **BCrypt hashes**, never in plaintext.
+- `@EnableMethodSecurity` + `@PreAuthorize("hasRole('ADMIN')")` guards admin routes at the method level.
+- JWT secret must be at minimum 32 bytes; the application validates this at startup and throws `IllegalStateException` if the secret is too short.
+- CORS is centrally configured via `CorsConfig`.
+
+---
+
+## Database Migrations
+
+Schema evolution is managed by **Flyway** with versioned SQL scripts:
+
+| Version | Script | Change |
+|---|---|---|
+| V1 | `create_users_table` | Initial users table |
+| V2 | `create_banks_table` | Banks table + seed data (5 banks) |
+| V3 | `create_bank_accounts_table` | Bank accounts with FK constraints |
+| V4 | `create_wallets_table` | Legacy wallets table (removed later) |
+| V5 | `create_categories_table` | Expense categories |
+| V6 | `create_transactions_table` | Unified transaction ledger |
+| V7 | `add_version_to_bank_accounts` | Optimistic locking column |
+| V8 | `add_version_to_wallets` | Legacy wallet version column |
+| V14 | `add_user_role_column` | Role-based access (USER / ADMIN) |
+| V15 | `create_login_otps_table` | OTP table with indexed lookups |
+| V16 | `remove_wallets_and_update_transfers` | Remove wallet dependencies and add transfer metadata |
+| V17 | `add_transaction_filter_columns` | Add transaction filter columns |
+| V18 | `add_transaction_history_indexes` | Add indexes for transaction history queries |
+| V19 | `normalize_user_role_values` | Normalize role values (`ROLE_USER` → `USER`) |
+
+---
+
+## Key Engineering Decisions
+
+**1. Unified Transaction Ledger**
+All financial events — income, expense, ATM withdrawal, and transfers — are stored in a single `transactions` table. Nullable FK columns (`source_bank_id`, `dest_bank_id`) and a `transaction_type` enum discriminate between them. This makes reporting queries straightforward without complex multi-table unions.
+
+**2. Optimistic Locking on Bank Accounts**
+The `bank_accounts` table carries a `version` column, mapped via JPA's `@Version`. This prevents lost-update race conditions when concurrent requests modify the same account balance — instead of taking a database lock, a stale write results in an `OptimisticLockException`, protecting data integrity without sacrificing throughput.
+
+**3. Interface + Impl Service Pattern**
+Every service is declared as an interface (e.g. `AuthService`) with a concrete implementation (e.g. `AuthServiceImpl`). This enforces a clean API contract between layers, makes mocking in unit tests trivial, and allows alternative implementations (e.g. a no-op mail service for local dev) to be swapped via Spring's dependency injection without touching call sites.
+
+**4. DTO Inner Records**
+Request and Response types are defined as Java `record` classes nested inside a parent DTO class (e.g. `UserDto.Request`, `UserDto.Response`). Records are immutable, compact, and automatically generate constructors, `equals`, `hashCode`, and `toString`. Nesting them avoids class-file proliferation while keeping types strongly grouped by domain concept.
+
+**5. OTP Hashed with BCrypt**
+One-time passwords are never stored in plaintext. A BCrypt hash is persisted at issuance time and verified at login — the same approach used for passwords. This means the `login_otps` table is safe even in the event of a database leak.
+
+**6. Fail-Open Mail Integration**
+The Mailgun integration is fully optional. `MAILGUN_ENABLED=false` disables it entirely; `MAILGUN_FAIL_OPEN=true` ensures a mail delivery failure never crashes a login or registration flow. This design keeps the application functional in development environments with no mail credentials.
+
+**7. Global Exception Handling**
+`@RestControllerAdvice` on `GlobalExceptionHandler` maps every exception type to a consistent JSON error envelope with `error`, `status`, and `timestamp` fields — covering validation errors (400), not found (404), conflicts (409), insufficient balance (422), and generic server errors (500).
+
+---
+
+## Frontend
+
+Frontend files are maintained in the `frontend/` directory. The backend serves REST APIs, and the frontend can be served using any static server (for example, VS Code Live Server). The UI communicates via `fetch` and stores JWT/session in `localStorage`.
+
+| Page | File | Purpose |
+|---|---|---|
+| Landing | `index.html` | App entry point and navigation |
+| User Login | `user-login.html` | Email/password + OTP login for users |
+| Admin Login | `admin-login.html` | Admin login flow |
+| Register | `register.html` | New user registration |
+| Dashboard Logic | `dashboard.js` | Accounts, transactions, transfers, reports, and admin workspace actions |
+| Admin Dashboard | `admin-dashboard.html` | Admin-only metrics, health, activity, and alerts |
+| Accounts | `accounts.html` | View and manage bank accounts |
+| Transactions | `transactions.html` | Record and browse transactions |
+| Transfers | `transfers.html` | Initiate fund transfers |
+| Reports | `reports.html` | Financial analytics and charts |
+| Users | `users.html` | Admin user management |
+
+All pages share `styles.css` and `auth.js` for token management and redirect guards.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Java 21+
+- Maven 3.9+ (or use the included `./mvnw`)
+- MySQL 8.0+ (or skip to the Docker Compose option below)
+
+### 1. Clone and configure
+
+```bash
+git clone <repo-url>
+cd personal-finance-tracker
+cp .env.example .env
+# Edit .env with your database credentials and JWT secret
+```
+
+`.env` is gitignored and should never be committed.
+
+### 2. Run with Maven (local MySQL)
+
+```bash
+./mvnw spring-boot:run
+```
+
+### 2.1 Run frontend (static)
+
+Serve the `frontend/` folder using a static server (for example, Live Server in VS Code).
+
+- Backend API: `http://localhost:8080`
+- Frontend URL (example): `http://localhost:5500`
+
+### 3. Run with Docker Compose (recommended)
+
+```bash
+docker compose up --build
+```
+
+This starts both the MySQL container and the application, with a health-check dependency ensuring the app waits for the database to be ready before starting.
+
+The API is available at **`http://localhost:8080`**
+
+Swagger UI at **`http://localhost:8080/swagger-ui.html`**
+
+---
+
+## Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `DB_HOST` | MySQL host | `localhost` |
+| `DB_PORT` | MySQL port | `3306` |
+| `DB_NAME` | Database name | — |
+| `DB_USERNAME` | MySQL user | — |
+| `DB_PASSWORD` | MySQL password | — |
+| `SERVER_PORT` | HTTP port | `8080` |
+| `APP_JWT_SECRET` | JWT signing secret (≥ 32 chars) | *(required)* |
+| `APP_JWT_EXPIRATION_MINUTES` | Token TTL in minutes | `120` |
+| `APP_OTP_EXPIRATION_MINUTES` | OTP TTL in minutes | `5` |
+| `MAILGUN_ENABLED` | Enable Mailgun email delivery | `false` |
+| `MAILGUN_FAIL_OPEN` | Continue on mail failure | `true` |
+| `MAILGUN_BASE_URL` | Mailgun API base URL | `https://api.mailgun.net` |
+| `MAILGUN_DOMAIN` | Mailgun sending domain | — |
+| `MAILGUN_API_KEY` | Mailgun API key | — |
+| `MAILGUN_FROM` | Sender email address | — |
+
+---
+
+## Docker Deployment
+
+The `Dockerfile` uses a **multi-stage build** to keep the final image lean:
+
+```
+Stage 1 (builder):  eclipse-temurin:21-jdk-alpine
+  → ./mvnw clean package (tests skipped)
+  → produces target/*.jar
+
+Stage 2 (runtime):  eclipse-temurin:21-jre-alpine
+  → copies only the JAR (no JDK, no source)
+  → EXPOSE 8080
+```
+
+`docker-compose.yml` defines two services:
+- `mysql` — MySQL 8.0 with a persistent named volume and a health check (`mysqladmin ping`)
+- `finance-api` — application container with `depends_on: mysql: condition: service_healthy`
+
+MySQL is exposed on host port `3307` to avoid conflicts with a locally running MySQL instance.
+
+---
+
+## What's Next
+
+- **Test coverage** — Unit tests for service layer (JUnit 5 + Mockito) and integration tests using the H2 in-memory database already on the classpath
+- **Bulk transaction import** — CSV upload endpoint with per-row error reporting (`TransactionDto.BulkRowError` DTO already scaffolded in the codebase)
+- **Email notifications** — Transaction confirmation and account activity alerts via the existing Mailgun integration
+- **Pagination** — Add `Pageable` to transaction history and admin list endpoints
+- **Refresh tokens** — Extend the auth flow with refresh token support for longer-lived sessions
+
+---
+
+*Built as a training project at QBurst — demonstrating Spring Boot 3, layered architecture, JWT security, and production-ready design patterns.*

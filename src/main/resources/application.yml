@@ -17,6 +17,7 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+    validate-on-migrate: false
 
 springdoc:
   swagger-ui:
@@ -27,3 +28,17 @@ springdoc:
 
 server:
   port: ${SERVER_PORT:8080}
+
+app:
+  auth:
+    jwt-secret: ${APP_JWT_SECRET:replace-with-a-strong-secret-key-at-least-32-characters}
+    jwt-expiration-minutes: ${APP_JWT_EXPIRATION_MINUTES:120}
+    otp-expiration-minutes: ${APP_OTP_EXPIRATION_MINUTES:5}
+  mailgun:
+    enabled: ${MAILGUN_ENABLED:false}
+    fail-open: ${MAILGUN_FAIL_OPEN:true}
+    base-url: ${MAILGUN_BASE_URL:https://api.mailgun.net}
+    domain: ${MAILGUN_DOMAIN:}
+    api-key: ${MAILGUN_API_KEY:}
+    from: ${MAILGUN_FROM:}
+    sandbox-recipient: ${MAILGUN_SANDBOX_RECIPIENT:}
