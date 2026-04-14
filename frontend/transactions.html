@@ -24,7 +24,13 @@
         <a class="active-link" href="transactions.html">Transactions</a>
         <a href="transfers.html">Transfers</a>
         <a href="reports.html">Reports</a>
+        <a class="user-only-nav" href="wallets.html">Wallets</a>
+        <a class="user-only-nav" href="wallet-transactions.html">Wallet Txns</a>
       </nav>
+      <div class="admin-sidebar-meta">
+        <p id="sessionInfo" class="session-chip">User session</p>
+        <button id="logoutButton" class="btn btn-secondary" type="button">Logout</button>
+      </div>
     </div>
   </header>
 
@@ -33,7 +39,7 @@
       <div class="container">
         <p class="kicker">Transactions Module</p>
         <h1 id="welcomeTitle">Transaction Management</h1>
-        <p class="lead">Record income, expenses, and withdrawals against bank accounts, then review transaction history.</p>
+        <p class="lead">Record income and expenses against bank accounts, then review transaction history.</p>
       </div>
     </section>
 
@@ -52,6 +58,13 @@
               <option value="Investment">Investment</option>
               <option value="Gift">Gift</option>
               <option value="Other">Other</option>
+            </select>
+            <select id="tx-income-paymentMethod">
+              <option value="" selected>Select Payment Method</option>
+              <option value="UPI">UPI</option>
+              <option value="CARD">Card</option>
+              <option value="NET_BANKING">Net Banking</option>
+              <option value="WALLET">Wallet</option>
             </select>
             <input id="tx-income-description" placeholder="Income Description" />
           </div>
@@ -76,6 +89,13 @@
               <option value="Education">Education</option>
               <option value="Others">Others</option>
             </select>
+            <select id="tx-expense-paymentMethod">
+              <option value="" selected>Select Payment Method</option>
+              <option value="UPI">UPI</option>
+              <option value="CARD">Card</option>
+              <option value="NET_BANKING">Net Banking</option>
+              <option value="WALLET">Wallet</option>
+            </select>
             <input id="tx-expense-description" placeholder="Expense Description" />
           </div>
           <div class="btn-row">
@@ -84,21 +104,8 @@
         </article>
 
         <article class="card op-card">
-          <h3>ATM Withdrawal</h3>
-          <div class="form-grid single">
-            <input id="tx-atm-bankAccountId" type="number" placeholder="ATM Bank Account ID" />
-            <input id="tx-atm-amount" type="number" step="0.01" placeholder="ATM Amount" />
-            <input id="tx-atm-description" placeholder="ATM Description" />
-          </div>
-          <div class="btn-row">
-            <button class="btn btn-primary" data-action="record-atm" type="button">ATM Withdrawal</button>
-          </div>
-        </article>
-
-        <article class="card op-card">
           <h3>Transaction History</h3>
           <div class="form-grid single">
-            <input id="tx-user-list" type="number" placeholder="User ID for history" />
             <div class="form-grid">
               <input id="tx-filter-fromDate" type="date" placeholder="From date" />
               <input id="tx-filter-toDate" type="date" placeholder="To date" />
@@ -131,7 +138,6 @@
                 <option value="Entertainment"></option>
                 <option value="Health"></option>
                 <option value="Education"></option>
-                <option value="ATM"></option>
                 <option value="Transfer"></option>
                 <option value="Other"></option>
                 <option value="Others"></option>

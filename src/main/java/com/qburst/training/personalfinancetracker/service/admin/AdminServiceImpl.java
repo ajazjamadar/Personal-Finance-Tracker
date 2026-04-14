@@ -9,12 +9,16 @@ import com.qburst.training.personalfinancetracker.entity.BankAccount;
 import com.qburst.training.personalfinancetracker.entity.Transaction;
 import com.qburst.training.personalfinancetracker.entity.User;
 import com.qburst.training.personalfinancetracker.entity.UserRole;
+import com.qburst.training.personalfinancetracker.entity.Wallet;
+import com.qburst.training.personalfinancetracker.entity.WalletTransaction;
 import com.qburst.training.personalfinancetracker.exception.DuplicateResourceException;
 import com.qburst.training.personalfinancetracker.exception.ResourceNotFoundException;
 import com.qburst.training.personalfinancetracker.repository.BankAccountRepository;
 import com.qburst.training.personalfinancetracker.repository.BankRepository;
 import com.qburst.training.personalfinancetracker.repository.TransactionRepository;
 import com.qburst.training.personalfinancetracker.repository.UserRepository;
+import com.qburst.training.personalfinancetracker.repository.WalletRepository;
+import com.qburst.training.personalfinancetracker.repository.WalletTransactionRepository;
 import com.qburst.training.personalfinancetracker.service.transaction.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,7 +39,9 @@ import java.util.Set;
 public class AdminServiceImpl implements AdminService {
 
     private static final BigDecimal LOW_BALANCE_THRESHOLD = new BigDecimal("1000.00");
+    private static final BigDecimal LOW_WALLET_BALANCE_THRESHOLD = new BigDecimal("500.00");
     private static final BigDecimal SUSPICIOUS_TRANSACTION_THRESHOLD = new BigDecimal("50000.00");
+    private static final BigDecimal SUSPICIOUS_WALLET_TRANSACTION_THRESHOLD = new BigDecimal("25000.00");
     private static final Set<Transaction.TransactionStatus> ACTIVE_TRANSFER_STATUSES = EnumSet.of(
             Transaction.TransactionStatus.INITIATED,
             Transaction.TransactionStatus.PENDING,
@@ -51,6 +57,8 @@ public class AdminServiceImpl implements AdminService {
     private final BankAccountRepository bankAccountRepository;
     private final BankRepository bankRepository;
     private final TransactionRepository transactionRepository;
+    private final WalletRepository walletRepository;
+    private final WalletTransactionRepository walletTransactionRepository;
     private final TransactionService transactionService;
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -62,11 +70,16 @@ public class AdminServiceImpl implements AdminService {
         LocalDateTime startOfTomorrow = today.plusDays(1).atStartOfDay();
         LocalDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay();
         LocalDateTime startOfNextMonth = today.withDayOfMonth(1).plusMonths(1).atStartOfDay();
+        long totalBankAccounts = bankAccountRepository.count();
+        long totalWallets = walletRepository.count();
 
         AdminDashboardDto.KeyMetrics keyMetrics = new AdminDashboardDto.KeyMetrics(
                 userRepository.count(),
-                bankAccountRepository.count(),
+                totalBankAccounts,
+                totalWallets,
+                totalBankAccounts + totalWallets,
                 transactionRepository.count(),
+                walletTransactionRepository.count(),
                 transactionRepository.sumAmountByTransactionTypeAndStatuses(
                         Transaction.TransactionType.TRANSFER,
                         ACTIVE_TRANSFER_STATUSES
@@ -76,12 +89,14 @@ public class AdminServiceImpl implements AdminService {
         AdminDashboardDto.Snapshot snapshot = new AdminDashboardDto.Snapshot(
                 new AdminDashboardDto.ActivityWindow(
                         transactionRepository.countByCreatedAtBetween(startOfToday, startOfTomorrow),
+                        walletTransactionRepository.countByCreatedAtBetween(startOfToday, startOfTomorrow),
                         transactionRepository.countByTransactionTypeAndCreatedAtBetween(
                                 Transaction.TransactionType.TRANSFER, startOfToday, startOfTomorrow),
                         userRepository.countByCreatedAtBetween(startOfToday, startOfTomorrow)
                 ),
                 new AdminDashboardDto.ActivityWindow(
                         transactionRepository.countByCreatedAtBetween(startOfMonth, startOfNextMonth),
+                        walletTransactionRepository.countByCreatedAtBetween(startOfMonth, startOfNextMonth),
                         transactionRepository.countByTransactionTypeAndCreatedAtBetween(
                                 Transaction.TransactionType.TRANSFER, startOfMonth, startOfNextMonth),
                         userRepository.countByCreatedAtBetween(startOfMonth, startOfNextMonth)
@@ -94,6 +109,7 @@ public class AdminServiceImpl implements AdminService {
                         Transaction.TransactionType.TRANSFER, PENDING_TRANSFER_STATUSES),
                 transactionRepository.countByTransactionTypeAndStatusIn(
                         Transaction.TransactionType.TRANSFER, Set.of(Transaction.TransactionStatus.FAILED)),
+                walletRepository.countByBalanceLessThanEqual(LOW_WALLET_BALANCE_THRESHOLD),
                 "UP",
                 now
         );
@@ -101,6 +117,9 @@ public class AdminServiceImpl implements AdminService {
         AdminDashboardDto.RecentActivity recentActivity = new AdminDashboardDto.RecentActivity(
                 transactionRepository.findTop8ByOrderByCreatedAtDesc().stream()
                         .map(this::toTransactionItem)
+                        .toList(),
+                walletTransactionRepository.findTop8ByOrderByCreatedAtDesc().stream()
+                        .map(this::toWalletTransactionItem)
                         .toList(),
                 userRepository.findTop8ByOrderByCreatedAtDesc().stream()
                         .map(this::toUserRegistrationItem)
@@ -122,9 +141,18 @@ public class AdminServiceImpl implements AdminService {
                         .stream()
                         .map(this::toLowBalanceIssue)
                         .toList(),
+                walletRepository.findTop8ByBalanceLessThanEqualOrderByBalanceAsc(LOW_WALLET_BALANCE_THRESHOLD)
+                        .stream()
+                        .map(this::toLowWalletBalanceIssue)
+                        .toList(),
                 transactionRepository.findTop8ByAmountGreaterThanEqualOrderByCreatedAtDesc(SUSPICIOUS_TRANSACTION_THRESHOLD)
                         .stream()
                         .map(this::toTransactionItem)
+                        .toList(),
+                walletTransactionRepository
+                        .findTop8ByAmountGreaterThanEqualOrderByCreatedAtDesc(SUSPICIOUS_WALLET_TRANSACTION_THRESHOLD)
+                        .stream()
+                        .map(this::toWalletTransactionItem)
                         .toList()
         );
 
@@ -134,7 +162,11 @@ public class AdminServiceImpl implements AdminService {
                 systemHealth,
                 recentActivity,
                 alerts,
-                new AdminDashboardDto.Thresholds(LOW_BALANCE_THRESHOLD, SUSPICIOUS_TRANSACTION_THRESHOLD),
+                new AdminDashboardDto.Thresholds(
+                        LOW_BALANCE_THRESHOLD,
+                        LOW_WALLET_BALANCE_THRESHOLD,
+                        SUSPICIOUS_TRANSACTION_THRESHOLD,
+                        SUSPICIOUS_WALLET_TRANSACTION_THRESHOLD),
                 now
         );
     }
@@ -304,6 +336,36 @@ public class AdminServiceImpl implements AdminService {
                 account.getAccountNumber(),
                 account.getBalance(),
                 account.getCreatedAt()
+        );
+    }
+
+    private AdminDashboardDto.WalletTransactionItem toWalletTransactionItem(WalletTransaction walletTransaction) {
+        Wallet wallet = walletTransaction.getWallet();
+        User user = wallet == null ? null : wallet.getUser();
+        return new AdminDashboardDto.WalletTransactionItem(
+                walletTransaction.getId(),
+                wallet == null ? null : wallet.getId(),
+                user == null ? null : user.getId(),
+                user == null ? null : user.getFullName(),
+                wallet == null ? null : wallet.getName(),
+                walletTransaction.getType() == null ? null : walletTransaction.getType().name(),
+                walletTransaction.getAmount(),
+                walletTransaction.getCategory(),
+                walletTransaction.getDescription(),
+                walletTransaction.getCreatedAt()
+        );
+    }
+
+    private AdminDashboardDto.LowWalletBalanceIssue toLowWalletBalanceIssue(Wallet wallet) {
+        User user = wallet.getUser();
+        return new AdminDashboardDto.LowWalletBalanceIssue(
+                wallet.getId(),
+                user == null ? null : user.getId(),
+                user == null ? null : user.getFullName(),
+                wallet.getName(),
+                wallet.getBalance(),
+                wallet.getCurrency(),
+                wallet.getCreatedAt()
         );
     }
 }

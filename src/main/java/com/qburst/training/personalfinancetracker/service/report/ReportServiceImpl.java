@@ -8,6 +8,7 @@ import com.qburst.training.personalfinancetracker.exception.ResourceNotFoundExce
 import com.qburst.training.personalfinancetracker.repository.BankAccountRepository;
 import com.qburst.training.personalfinancetracker.repository.TransactionRepository;
 import com.qburst.training.personalfinancetracker.repository.UserRepository;
+import com.qburst.training.personalfinancetracker.repository.WalletRepository;
 import com.qburst.training.personalfinancetracker.security.AuthContextService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,21 +24,23 @@ import java.util.Locale;
 public class ReportServiceImpl implements ReportService {
     private static final List<TransactionType> EXPENSE_TYPES = List.of(
             TransactionType.EXPENSE,
-            TransactionType.ATM_WITHDRAWAL,
             TransactionType.TRANSFER
     );
     private static final Transaction.TransactionStatus INCLUDED_STATUS = Transaction.TransactionStatus.SUCCESS;
 
     private final BankAccountRepository bankAccountRepository;
+    private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final AuthContextService authContextService;
 
     public ReportServiceImpl(BankAccountRepository bankAccountRepository,
+                             WalletRepository walletRepository,
                              TransactionRepository transactionRepository,
                              UserRepository userRepository,
                              AuthContextService authContextService) {
         this.bankAccountRepository = bankAccountRepository;
+        this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
         this.authContextService = authContextService;
@@ -101,10 +104,21 @@ public class ReportServiceImpl implements ReportService {
         Long effectiveUserId = resolveAndValidateUserById(userId);
         return new ReportDto.Overview(
                 getBankBalanceSummary(effectiveUserId),
+                getWalletBalances(effectiveUserId),
                 getMonthlyExpenses(effectiveUserId),
                 getExpenseByCategory(effectiveUserId),
                 getIncomeExpenseSummary(effectiveUserId)
         );
+    }
+
+    private List<ReportDto.WalletBalance> getWalletBalances(Long userId) {
+        return walletRepository.findByUserIdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(wallet -> new ReportDto.WalletBalance(
+                        wallet.getName(),
+                        wallet.getBalance(),
+                        wallet.getCurrency()))
+                .toList();
     }
 
     private Long resolveAndValidateUserById(Long userId) {

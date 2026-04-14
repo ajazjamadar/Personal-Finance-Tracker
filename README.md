@@ -121,7 +121,7 @@ personal-finance-tracker/
 │       └── DuplicateResourceException.java
 ├── src/main/resources/
 │   ├── application.yml
-│   └── db/migration/                # Flyway SQL migrations V1–V19
+│   └── db/migration/                # Flyway SQL migrations V1–V21
 ├── frontend/                        # Frontend source (HTML/CSS/JS)
 │   ├── index.html                   # Landing page
 │   ├── dashboard.js                 # Main workspace logic
@@ -151,13 +151,19 @@ bank_accounts
  ├── account_number (unique), balance (DECIMAL 15,2)
  └── version                            ← optimistic locking
 
+wallets
+ ├── id, user_id → users
+ ├── name, balance (DECIMAL 15,2), currency
+ ├── is_deleted (soft delete), version
+ └── created_at, updated_at
+
 categories
  └── id, name, description
 
 transactions                             ← unified ledger for all money movements
  ├── id, user_id, category_id
  ├── source_bank_id, dest_bank_id        ← nullable; populated depending on type
- ├── transaction_type  (INCOME | EXPENSE | ATM_WITHDRAWAL | TRANSFER)
+ ├── transaction_type  (INCOME | EXPENSE | TRANSFER)
  ├── transfer_type     (ACCOUNT | MOBILE | UPI)   ← only for TRANSFER rows
  ├── self_transfer (boolean)
  ├── destination_value (account no / mobile / UPI string)
@@ -165,6 +171,11 @@ transactions                             ← unified ledger for all money moveme
 
 login_otps
  └── id, user_id, otp_hash (BCrypt), purpose, expires_at, used_at, created_at
+
+wallet_transactions
+ ├── id, wallet_id → wallets
+ ├── type (CREDIT | DEBIT | TRANSFER)
+ └── amount, category, description, created_at
 ```
 
 The `transactions` table acts as a **polymorphic ledger**: nullable foreign keys and the `transaction_type` / `transfer_type` discriminator columns keep all financial events in one place, simplifying reporting queries considerably.
@@ -203,13 +214,21 @@ The `transactions` table acts as a **polymorphic ledger**: nullable foreign keys
 | GET | `/api/bank-accounts/user/{userId}` | Get all accounts for a user |
 | DELETE | `/api/bank-accounts/{id}` | Close a bank account |
 
+### Wallets — `/api/wallets`
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/wallets` | Create wallet for current user |
+| GET | `/api/wallets` | List current user wallets |
+| GET | `/api/wallets/{id}` | Get wallet by ID |
+| DELETE | `/api/wallets/{id}` | Soft delete wallet |
+
 ### Transactions — `/api/transactions`
 
 | Method | Endpoint | Description |
 |---|---|---|
 | POST | `/api/transactions/income` | Record income into an account |
 | POST | `/api/transactions/expense` | Record an account expense |
-| POST | `/api/transactions/atm-withdrawal` | Record ATM cash withdrawal |
 | GET | `/api/transactions/user/{userId}` | Full transaction history for a user |
 | GET | `/api/transactions/{id}` | Get a single transaction |
 
@@ -218,6 +237,14 @@ The `transactions` table acts as a **polymorphic ledger**: nullable foreign keys
 | Method | Endpoint | Description |
 |---|---|---|
 | POST | `/api/transfers` | Transfer funds (ACCOUNT / MOBILE / UPI) |
+
+### Wallet Transactions — `/api/transactions`
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/transactions/deposit` | Deposit into wallet (CREDIT) |
+| POST | `/api/transactions/withdraw` | Withdraw from wallet (DEBIT) |
+| POST | `/api/transactions/transfer` | Transfer between wallets |
 
 ### Reports — `/api/reports`
 
@@ -300,13 +327,15 @@ Schema evolution is managed by **Flyway** with versioned SQL scripts:
 | V17 | `add_transaction_filter_columns` | Add transaction filter columns |
 | V18 | `add_transaction_history_indexes` | Add indexes for transaction history queries |
 | V19 | `normalize_user_role_values` | Normalize role values (`ROLE_USER` → `USER`) |
+| V20 | `remove_atm_withdrawal_type` | Normalize legacy ATM withdrawals to expenses |
+| V21 | `create_wallets_and_wallet_transactions` | Reintroduce wallets and wallet ledger |
 
 ---
 
 ## Key Engineering Decisions
 
 **1. Unified Transaction Ledger**
-All financial events — income, expense, ATM withdrawal, and transfers — are stored in a single `transactions` table. Nullable FK columns (`source_bank_id`, `dest_bank_id`) and a `transaction_type` enum discriminate between them. This makes reporting queries straightforward without complex multi-table unions.
+All financial events — income, expense, and transfers — are stored in a single `transactions` table. Nullable FK columns (`source_bank_id`, `dest_bank_id`) and a `transaction_type` enum discriminate between them. This makes reporting queries straightforward without complex multi-table unions.
 
 **2. Optimistic Locking on Bank Accounts**
 The `bank_accounts` table carries a `version` column, mapped via JPA's `@Version`. This prevents lost-update race conditions when concurrent requests modify the same account balance — instead of taking a database lock, a stale write results in an `OptimisticLockException`, protecting data integrity without sacrificing throughput.

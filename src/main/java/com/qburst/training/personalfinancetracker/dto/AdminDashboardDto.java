@@ -18,8 +18,11 @@ public class AdminDashboardDto {
 
     public record KeyMetrics(
             long totalUsers,
+            long totalBankAccounts,
+            long totalWallets,
             long totalAccounts,
             long totalTransactions,
+            long totalWalletTransactions,
             BigDecimal totalTransferVolume
     ) {}
 
@@ -30,6 +33,7 @@ public class AdminDashboardDto {
 
     public record ActivityWindow(
             long transactions,
+            long walletTransactions,
             long transfers,
             long newUsers
     ) {}
@@ -38,12 +42,14 @@ public class AdminDashboardDto {
             long failedTransactionsCount,
             long pendingTransfersCount,
             long failedTransfersCount,
+            long lowWalletBalanceCount,
             String apiStatus,
             LocalDateTime checkedAt
     ) {}
 
     public record RecentActivity(
             List<TransactionItem> latestTransactions,
+            List<WalletTransactionItem> latestWalletTransactions,
             List<UserRegistrationItem> recentUserRegistrations,
             List<TransferItem> recentTransfers
     ) {}
@@ -51,12 +57,16 @@ public class AdminDashboardDto {
     public record Alerts(
             List<TransferItem> failedTransfers,
             List<LowBalanceIssue> lowBalanceIssues,
-            List<TransactionItem> suspiciousTransactions
+            List<LowWalletBalanceIssue> lowWalletBalanceIssues,
+            List<TransactionItem> suspiciousTransactions,
+            List<WalletTransactionItem> suspiciousWalletTransactions
     ) {}
 
     public record Thresholds(
             BigDecimal lowBalanceThreshold,
-            BigDecimal suspiciousTransactionThreshold
+            BigDecimal lowWalletBalanceThreshold,
+            BigDecimal suspiciousTransactionThreshold,
+            BigDecimal suspiciousWalletTransactionThreshold
     ) {}
 
     public record TransactionItem(
@@ -84,6 +94,19 @@ public class AdminDashboardDto {
             LocalDateTime createdAt
     ) {}
 
+    public record WalletTransactionItem(
+            Long id,
+            Long walletId,
+            Long userId,
+            String userName,
+            String walletName,
+            String type,
+            BigDecimal amount,
+            String category,
+            String description,
+            LocalDateTime createdAt
+    ) {}
+
     public record UserRegistrationItem(
             Long id,
             String fullName,
@@ -99,6 +122,16 @@ public class AdminDashboardDto {
             String bankName,
             String accountNumber,
             BigDecimal balance,
+            LocalDateTime createdAt
+    ) {}
+
+    public record LowWalletBalanceIssue(
+            Long walletId,
+            Long userId,
+            String userName,
+            String walletName,
+            BigDecimal balance,
+            String currency,
             LocalDateTime createdAt
     ) {}
 }

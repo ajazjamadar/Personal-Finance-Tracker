@@ -2,6 +2,8 @@ package com.qburst.training.personalfinancetracker.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,6 +14,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+
+@SQLDelete(sql = "UPDATE users SET is_deleted = true, deleted_at = NOW() WHERE id=?")
+@Where(clause = "is_deleted = false")
 public class User {
 
     @Id
@@ -27,6 +32,7 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
+    @Enumerated(EnumType.STRING) // ✅ important
     @Column(nullable = false, length = 20)
     private UserRole role;
 
@@ -36,8 +42,12 @@ public class User {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @Column
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
+
+    private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<BankAccount> bankAccounts;
@@ -49,6 +59,9 @@ public class User {
         }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (isDeleted == null) {
+            isDeleted = false;
+        }
     }
 
     @PreUpdate

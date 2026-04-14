@@ -16,6 +16,8 @@ public class TransferDto {
 
             Long destinationAccountId,
 
+            Long destinationWalletId,
+
             @NotNull(message = "Transfer type is required")
             TransferType transferType,
 
@@ -40,6 +42,7 @@ public class TransferDto {
 
     public enum TransferType {
         ACCOUNT,
+        WALLET,
         MOBILE,
         UPI
     }
@@ -52,6 +55,7 @@ public class TransferDto {
             Boolean selfTransfer,
             Long sourceAccountId,
             Long destinationAccountId,
+            Long destinationWalletId,
             String destinationValue,
             String receiverName,
             String paymentMethod,

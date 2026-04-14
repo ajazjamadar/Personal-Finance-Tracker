@@ -45,9 +45,12 @@ const adminHealthGridEl = document.getElementById('adminHealthGrid');
 const adminRecentTransactionsEl = document.getElementById('adminRecentTransactions');
 const adminRecentUsersEl = document.getElementById('adminRecentUsers');
 const adminRecentTransfersEl = document.getElementById('adminRecentTransfers');
+const adminRecentWalletTransactionsEl = document.getElementById('adminRecentWalletTransactions');
 const adminFailedTransfersEl = document.getElementById('adminFailedTransfers');
 const adminLowBalancesEl = document.getElementById('adminLowBalances');
+const adminLowWalletBalancesEl = document.getElementById('adminLowWalletBalances');
 const adminSuspiciousTransactionsEl = document.getElementById('adminSuspiciousTransactions');
+const adminSuspiciousWalletTransactionsEl = document.getElementById('adminSuspiciousWalletTransactions');
 
 const actionFeedback = {
   'admin-dashboard': { success: 'Admin dashboard refreshed', error: 'Failed to load admin dashboard' },
@@ -58,7 +61,6 @@ const actionFeedback = {
   'delete-bank-account': { success: 'Bank account deleted successfully', error: 'Failed to delete bank account' },
   'record-income': { success: 'Income recorded successfully', error: 'Failed to record income' },
   'record-expense': { success: 'Expense recorded successfully', error: 'Failed to record expense' },
-  'record-atm': { success: 'ATM withdrawal recorded', error: 'Failed to record ATM withdrawal' },
   'list-transactions': { success: 'Transactions loaded', error: 'Failed to list transactions' },
   'get-transaction': { success: 'Transaction loaded', error: 'Failed to fetch transaction' },
   'transfer-funds': { success: 'Transfer completed successfully', error: 'Failed to transfer funds' },
@@ -67,6 +69,14 @@ const actionFeedback = {
   'report-category-expense': { success: 'Category report generated', error: 'Failed to generate category report' },
   'report-summary': { success: 'Income/expense summary generated', error: 'Failed to generate income/expense summary' },
   'report-overview': { success: 'Financial overview generated', error: 'Failed to generate financial overview' },
+  'create-wallet': { success: 'Wallet created successfully', error: 'Failed to create wallet' },
+  'list-wallets': { success: 'Wallets loaded successfully', error: 'Failed to list wallets' },
+  'get-wallet': { success: 'Wallet loaded successfully', error: 'Failed to load wallet' },
+  'delete-wallet': { success: 'Wallet deleted successfully', error: 'Failed to delete wallet' },
+  'wallet-deposit': { success: 'Deposit completed successfully', error: 'Failed to deposit wallet amount' },
+  'wallet-withdraw': { success: 'Withdrawal completed successfully', error: 'Failed to withdraw wallet amount' },
+  'wallet-transfer': { success: 'Wallet transfer completed successfully', error: 'Failed to transfer between wallets' },
+  'wallet-list-transactions': { success: 'Wallet transactions loaded successfully', error: 'Failed to load wallet transactions' },
   'admin-users': { success: 'Admin users loaded', error: 'Failed to load admin users' },
   'admin-create-user': { success: 'User profile created successfully', error: 'Failed to create user profile' },
   'admin-update-user': { success: 'User profile updated successfully', error: 'Failed to update user profile' },
@@ -154,15 +164,12 @@ function roleUserId(id, label) {
   return uid;
 }
 
-function reportUserId(id, label) {
-  if (!isAdmin()) {
-    const uid = currentUserId();
-    if (!uid) {
-      throw new Error('Unable to resolve current user session. Please login again.');
-    }
-    return uid;
+function reportUserId() {
+  const uid = currentUserId();
+  if (!uid) {
+    throw new Error('Unable to resolve current user session. Please login again.');
   }
-  return requireNumber(id, label);
+  return uid;
 }
 
 function applySessionInfo() {
@@ -245,25 +252,16 @@ function applyRoleDefaults() {
     }
 
     const path = window.location.pathname;
-    if (path.endsWith('/transactions.html') || path.endsWith('/transfers.html')) {
+    if (
+      path.endsWith('/transactions.html') ||
+      path.endsWith('/transfers.html') ||
+      path.endsWith('/wallets.html') ||
+      path.endsWith('/wallet-transactions.html')
+    ) {
       window.location.href = 'users.html';
     }
     return;
   }
-
-  const userIdInputs = [
-    'ba-userId',
-    'ba-user-list',
-    'tx-user-list',
-    'r-userId'
-  ];
-
-  userIdInputs.forEach(id => {
-    const input = document.getElementById(id);
-    if (!input) return;
-    input.value = String(currentUserId() || '');
-    input.setAttribute('readonly', 'readonly');
-  });
 
   ['admin-users', 'admin-create-user', 'admin-update-user', 'admin-accounts', 'admin-update-account'].forEach(action => {
     const button = document.querySelector(`[data-action="${action}"]`);
@@ -465,6 +463,59 @@ function extractBankAccountRecords(data) {
   return [];
 }
 
+function normalizeWalletRecord(item) {
+  if (!item || typeof item !== 'object') return null;
+
+  const normalized = {
+    id: item.id ?? null,
+    userId: item.userId ?? item.user?.id ?? null,
+    name: item.name ?? null,
+    balance: item.balance ?? null,
+    currency: item.currency ?? 'INR',
+    createdAt: item.createdAt ?? null,
+    updatedAt: item.updatedAt ?? null,
+  };
+
+  const hasRequiredFields = normalized.id !== null
+    && normalized.name !== null
+    && normalized.balance !== null;
+  return hasRequiredFields ? normalized : null;
+}
+
+function extractWalletRecords(data) {
+  if (Array.isArray(data)) {
+    return data.map(normalizeWalletRecord).filter(Boolean);
+  }
+  if (data && typeof data === 'object') {
+    const single = normalizeWalletRecord(data);
+    return single ? [single] : [];
+  }
+  return [];
+}
+
+function renderWalletCards(records) {
+  const normalizedRecords = records.map(normalizeWalletRecord).filter(Boolean);
+
+  if (!normalizedRecords.length) {
+    return '<p class="result-empty">No wallets found.</p>';
+  }
+
+  return `
+    <div class="account-result-cards">
+      ${normalizedRecords.map(wallet => `
+        <article class="account-result-card">
+          <p><strong>Wallet ID -</strong> ${escapeHtml(wallet.id ?? '-')}</p>
+          <p><strong>Name -</strong> ${escapeHtml(wallet.name ?? '-')}</p>
+          <p><strong>Balance -</strong> ${escapeHtml(formatCurrency(wallet.balance))}</p>
+          <p><strong>Currency -</strong> ${escapeHtml(wallet.currency ?? 'INR')}</p>
+          <p><strong>Created At -</strong> ${escapeHtml(formatDateTime(wallet.createdAt))}</p>
+          <p><strong>Updated At -</strong> ${escapeHtml(formatDateTime(wallet.updatedAt))}</p>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
 function formatDateTime(value) {
   if (!value) return '-';
   const date = new Date(value);
@@ -509,7 +560,9 @@ function adminStatusTone(status) {
   const normalized = String(status || '').toUpperCase();
   if (normalized === 'FAILED') return 'danger';
   if (normalized === 'PENDING' || normalized === 'INITIATED') return 'warning';
+  if (normalized === 'DEBIT') return 'warning';
   if (normalized === 'SENT' || normalized === 'SUCCESS' || normalized === 'UP') return 'success';
+  if (normalized === 'CREDIT') return 'success';
   return 'neutral';
 }
 
@@ -520,10 +573,17 @@ function renderStatusPill(status) {
 function renderAdminMetricGrid(metrics) {
   if (!adminMetricGridEl || !metrics) return;
 
+  const totalBankAccounts = Number(metrics.totalBankAccounts ?? metrics.totalAccounts ?? 0);
+  const totalWallets = Number(metrics.totalWallets ?? 0);
+  const totalAccounts = Number(metrics.totalAccounts ?? (totalBankAccounts + totalWallets));
+
   const cards = [
     { label: 'Total Users', value: formatNumber(metrics.totalUsers), tone: 'users' },
-    { label: 'Total Accounts / Wallets', value: formatNumber(metrics.totalAccounts), tone: 'accounts' },
+    { label: 'Total Bank Accounts', value: formatNumber(totalBankAccounts), tone: 'accounts' },
+    { label: 'Total Wallets', value: formatNumber(totalWallets), tone: 'wallets' },
+    { label: 'Total Accounts (Bank + Wallet)', value: formatNumber(totalAccounts), tone: 'platform' },
     { label: 'Total Transactions', value: formatNumber(metrics.totalTransactions), tone: 'transactions' },
+    { label: 'Total Wallet Transactions', value: formatNumber(metrics.totalWalletTransactions), tone: 'ledger' },
     { label: 'Total Transfer Volume', value: formatCurrency(metrics.totalTransferVolume), tone: 'volume' },
   ];
 
@@ -542,6 +602,7 @@ function renderSnapshotWindow(title, window) {
 
   const stats = [
     { label: 'Transactions', value: formatNumber(window.transactions) },
+    { label: 'Wallet Txns', value: formatNumber(window.walletTransactions) },
     { label: 'Transfers', value: formatNumber(window.transfers) },
     { label: 'New Users', value: formatNumber(window.newUsers) },
   ];
@@ -578,6 +639,7 @@ function renderAdminHealth(health) {
     { label: 'Failed Transactions', value: formatNumber(health.failedTransactionsCount), tone: health.failedTransactionsCount > 0 ? 'danger' : 'success' },
     { label: 'Pending Transfers', value: formatNumber(health.pendingTransfersCount), tone: health.pendingTransfersCount > 0 ? 'warning' : 'success' },
     { label: 'Failed Transfers', value: formatNumber(health.failedTransfersCount), tone: health.failedTransfersCount > 0 ? 'danger' : 'success' },
+    { label: 'Low Wallet Balances', value: formatNumber(health.lowWalletBalanceCount), tone: health.lowWalletBalanceCount > 0 ? 'warning' : 'success' },
     { label: 'API / System', value: health.apiStatus || 'UNKNOWN', tone: adminStatusTone(health.apiStatus) },
   ];
 
@@ -650,6 +712,18 @@ function renderRecentTransfers(records) {
   ], records, 'No recent transfers found.');
 }
 
+function renderRecentWalletTransactions(records) {
+  if (!adminRecentWalletTransactionsEl) return;
+  adminRecentWalletTransactionsEl.innerHTML = renderDashboardTable([
+    { label: 'ID', value: item => item.id ?? '-' },
+    { label: 'Wallet', value: item => item.walletName || `#${item.walletId ?? '-'}` },
+    { label: 'User', value: item => item.userName || '-' },
+    { label: 'Type', value: item => renderStatusPill(item.type), html: true },
+    { label: 'Amount', value: item => formatCurrency(item.amount) },
+    { label: 'When', value: item => formatDateTime(item.createdAt) },
+  ], records, 'No recent wallet transactions found.');
+}
+
 function renderAlertList(targetEl, items, renderItem, emptyMessage) {
   if (!targetEl) return;
   if (!Array.isArray(items) || !items.length) {
@@ -693,6 +767,22 @@ function renderAdminAlerts(alerts, thresholds) {
   );
 
   renderAlertList(
+    adminLowWalletBalancesEl,
+    alerts?.lowWalletBalanceIssues,
+    item => `
+      <article class="alert-item warning">
+        <div class="alert-item-head">
+          <strong>${escapeHtml(item.walletName || `Wallet #${item.walletId ?? '-'}`)}</strong>
+          <span class="alert-balance">${escapeHtml(formatCurrency(item.balance))}</span>
+        </div>
+        <p>${escapeHtml(item.userName || 'Unknown user')} • Wallet #${escapeHtml(item.walletId ?? '-')}</p>
+        <p class="alert-meta">Threshold ${escapeHtml(formatCurrency(thresholds?.lowWalletBalanceThreshold))} • Opened ${escapeHtml(formatDateTime(item.createdAt))}</p>
+      </article>
+    `,
+    'No low wallet balances below the alert threshold.'
+  );
+
+  renderAlertList(
     adminSuspiciousTransactionsEl,
     alerts?.suspiciousTransactions,
     item => `
@@ -707,6 +797,22 @@ function renderAdminAlerts(alerts, thresholds) {
     `,
     'No suspicious high-value transactions detected.'
   );
+
+  renderAlertList(
+    adminSuspiciousWalletTransactionsEl,
+    alerts?.suspiciousWalletTransactions,
+    item => `
+      <article class="alert-item neutral">
+        <div class="alert-item-head">
+          <strong>${escapeHtml(item.walletName || `Wallet #${item.walletId ?? '-'}`)} • #${escapeHtml(item.id ?? '-')}</strong>
+          ${renderStatusPill(item.type)}
+        </div>
+        <p>${escapeHtml(item.userName || 'Unknown user')} moved ${escapeHtml(formatCurrency(item.amount))}.</p>
+        <p class="alert-meta">Threshold ${escapeHtml(formatCurrency(thresholds?.suspiciousWalletTransactionThreshold))} • ${escapeHtml(formatDateTime(item.createdAt))}</p>
+      </article>
+    `,
+    'No suspicious high-value wallet activity detected.'
+  );
 }
 
 function hasAdminDashboardShell() {
@@ -720,6 +826,7 @@ function renderAdminDashboard(data) {
   renderAdminSnapshot(data.snapshot);
   renderAdminHealth(data.systemHealth);
   renderRecentTransactions(data.recentActivity?.latestTransactions);
+  renderRecentWalletTransactions(data.recentActivity?.latestWalletTransactions);
   renderRecentUsers(data.recentActivity?.recentUserRegistrations);
   renderRecentTransfers(data.recentActivity?.recentTransfers);
   renderAdminAlerts(data.alerts, data.thresholds);
@@ -822,6 +929,7 @@ function isReportOverview(data) {
     data &&
     typeof data === 'object' &&
     Array.isArray(data.bankBalances) &&
+    (data.walletBalances == null || Array.isArray(data.walletBalances)) &&
     Array.isArray(data.monthlyExpenses) &&
     Array.isArray(data.expenseByCategory) &&
     data.incomeExpenseSummary &&
@@ -848,6 +956,215 @@ function renderReportSummaryCards(summary) {
         `).join('')}
       </div>
     </section>
+  `;
+}
+
+function amountOf(value) {
+  const numeric = Number(value ?? 0);
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function reportPalette(index) {
+  const colors = ['#4c88ff', '#1fc3b2', '#f59e0b', '#ef4444', '#8b5cf6', '#22c55e', '#ec4899', '#14b8a6'];
+  return colors[index % colors.length];
+}
+
+function monthOrderValue(monthLabel) {
+  const key = String(monthLabel || '').trim().toLowerCase();
+  const map = new Map([
+    ['january', 1], ['february', 2], ['march', 3], ['april', 4], ['may', 5], ['june', 6],
+    ['july', 7], ['august', 8], ['september', 9], ['october', 10], ['november', 11], ['december', 12],
+    ['jan', 1], ['feb', 2], ['mar', 3], ['apr', 4], ['jun', 6], ['jul', 7], ['aug', 8], ['sep', 9], ['oct', 10], ['nov', 11], ['dec', 12],
+  ]);
+  return map.get(key) ?? 99;
+}
+
+function normalizeCategorySeries(records) {
+  if (!Array.isArray(records)) return [];
+  return records
+    .map(row => ({
+      label: row?.category || 'Uncategorized',
+      value: amountOf(row?.totalExpense),
+    }))
+    .filter(item => item.value > 0);
+}
+
+function normalizeWalletSeries(records) {
+  if (!Array.isArray(records)) return [];
+  return records
+    .map(row => ({
+      label: row?.walletName || row?.name || 'Wallet',
+      value: amountOf(row?.balance),
+      currency: row?.currency || 'INR',
+    }))
+    .filter(item => item.value > 0);
+}
+
+function normalizeMonthlySeries(records) {
+  if (!Array.isArray(records)) return [];
+  return records
+    .map(row => ({
+      month: row?.month || 'Unknown',
+      year: Number(row?.year ?? 0),
+      value: amountOf(row?.totalExpense),
+    }))
+    .sort((a, b) => (a.year - b.year) || (monthOrderValue(a.month) - monthOrderValue(b.month)));
+}
+
+function buildConicGradient(series) {
+  const total = series.reduce((sum, item) => sum + item.value, 0);
+  if (total <= 0) {
+    return 'rgba(120, 144, 177, 0.25) 0deg 360deg';
+  }
+  let progress = 0;
+  return series.map((item, index) => {
+    const start = (progress / total) * 360;
+    progress += item.value;
+    const end = (progress / total) * 360;
+    return `${reportPalette(index)} ${start.toFixed(2)}deg ${end.toFixed(2)}deg`;
+  }).join(', ');
+}
+
+function renderChartLegend(series, total) {
+  return `
+    <div class="report-chart-legend">
+      ${series.map((item, index) => {
+        const percent = total > 0 ? (item.value / total) * 100 : 0;
+        return `
+          <div class="report-chart-legend-item">
+            <span class="swatch" style="--swatch:${reportPalette(index)};"></span>
+            <span class="label">${escapeHtml(item.label)}</span>
+            <span class="value">${escapeHtml(formatCurrency(item.value))}</span>
+            <span class="percent">${escapeHtml(percent.toFixed(1))}%</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderEmptyChartCard(title, message) {
+  return `
+    <article class="report-chart-card">
+      <h5>${escapeHtml(title)}</h5>
+      <p class="result-empty">${escapeHtml(message)}</p>
+    </article>
+  `;
+}
+
+function renderCategoryPieChart(records) {
+  const series = normalizeCategorySeries(records);
+  if (!series.length) {
+    return renderEmptyChartCard('Pie Chart (Category)', 'No category expenses found.');
+  }
+  const total = series.reduce((sum, item) => sum + item.value, 0);
+  return `
+    <article class="report-chart-card">
+      <h5>Pie Chart (Category)</h5>
+      <div class="report-chart-body">
+        <div class="chart-circle chart-pie" style="background: conic-gradient(${buildConicGradient(series)});"></div>
+        <div class="chart-total">
+          <span>Total Expense</span>
+          <strong>${escapeHtml(formatCurrency(total))}</strong>
+        </div>
+      </div>
+      ${renderChartLegend(series, total)}
+    </article>
+  `;
+}
+
+function renderWalletDonutChart(records) {
+  const series = normalizeWalletSeries(records);
+  if (!series.length) {
+    return renderEmptyChartCard('Donut Chart (Wallets)', 'No wallet balances found.');
+  }
+  const total = series.reduce((sum, item) => sum + item.value, 0);
+  return `
+    <article class="report-chart-card">
+      <h5>Donut Chart (Wallets)</h5>
+      <div class="report-chart-body">
+        <div class="chart-circle chart-donut" style="background: conic-gradient(${buildConicGradient(series)});">
+          <div class="chart-donut-center">
+            <span>${escapeHtml(String(series.length))} Wallets</span>
+            <strong>${escapeHtml(formatCurrency(total))}</strong>
+          </div>
+        </div>
+      </div>
+      ${renderChartLegend(series, total)}
+    </article>
+  `;
+}
+
+function renderMonthlyLineChart(records) {
+  const series = normalizeMonthlySeries(records).filter(item => item.value >= 0);
+  if (!series.length) {
+    return renderEmptyChartCard('Line Chart (Monthly Trend)', 'No monthly expense trend data found.');
+  }
+
+  const width = 620;
+  const height = 240;
+  const padding = 28;
+  const plotWidth = width - (padding * 2);
+  const plotHeight = height - (padding * 2);
+  const maxValue = Math.max(...series.map(item => item.value), 1);
+  const x = index => series.length === 1
+    ? padding + (plotWidth / 2)
+    : padding + (index * (plotWidth / (series.length - 1)));
+  const y = value => padding + (plotHeight - ((value / maxValue) * plotHeight));
+  const points = series.map((point, index) => `${x(index).toFixed(2)},${y(point.value).toFixed(2)}`).join(' ');
+
+  return `
+    <article class="report-chart-card">
+      <h5>Line Chart (Monthly Trend)</h5>
+      <div class="report-line-chart-wrap">
+        <svg viewBox="0 0 ${width} ${height}" class="report-line-chart" role="img" aria-label="Monthly expense trend line chart">
+          ${Array.from({ length: 5 }, (_, i) => {
+            const ratio = i / 4;
+            const yPos = padding + (ratio * plotHeight);
+            const tickValue = maxValue * (1 - ratio);
+            return `
+              <line x1="${padding}" y1="${yPos.toFixed(2)}" x2="${(width - padding).toFixed(2)}" y2="${yPos.toFixed(2)}" class="grid-line"></line>
+              <text x="4" y="${(yPos + 4).toFixed(2)}" class="axis-label">${escapeHtml(formatNumber(Math.round(tickValue)))}</text>
+            `;
+          }).join('')}
+          <polyline points="${points}" class="trend-line"></polyline>
+          ${series.map((point, index) => `
+            <circle cx="${x(index).toFixed(2)}" cy="${y(point.value).toFixed(2)}" r="4" class="trend-dot"></circle>
+          `).join('')}
+        </svg>
+      </div>
+      <div class="report-line-labels">
+        ${series.map(point => `
+          <span>${escapeHtml(`${point.month.slice(0, 3)} ${point.year}`)}</span>
+        `).join('')}
+      </div>
+    </article>
+  `;
+}
+
+function renderIncomeExpenseBarChart(summary) {
+  const income = amountOf(summary?.totalIncome);
+  const expense = amountOf(summary?.totalExpense);
+  const maxValue = Math.max(income, expense, 1);
+  const bars = [
+    { label: 'Income', value: income, tone: 'income' },
+    { label: 'Expense', value: expense, tone: 'expense' },
+  ];
+  return `
+    <article class="report-chart-card">
+      <h5>Bar Chart (Income vs Expense)</h5>
+      <div class="report-bar-chart">
+        ${bars.map(bar => `
+          <div class="report-bar-column">
+            <div class="bar-track">
+              <div class="bar-fill ${bar.tone}" style="height:${((bar.value / maxValue) * 100).toFixed(2)}%;"></div>
+            </div>
+            <p>${escapeHtml(bar.label)}</p>
+            <strong>${escapeHtml(formatCurrency(bar.value))}</strong>
+          </div>
+        `).join('')}
+      </div>
+    </article>
   `;
 }
 
@@ -886,9 +1203,19 @@ function renderReportTable(title, columns, records, emptyMessage) {
 }
 
 function renderOverview(data) {
+  const walletBalances = Array.isArray(data.walletBalances) ? data.walletBalances : [];
   return `
     <div class="report-overview">
       ${renderReportSummaryCards(data.incomeExpenseSummary)}
+      <section class="report-overview-section">
+        <h4>User Analytics</h4>
+        <div class="report-charts-grid">
+          ${renderCategoryPieChart(data.expenseByCategory)}
+          ${renderMonthlyLineChart(data.monthlyExpenses)}
+          ${renderIncomeExpenseBarChart(data.incomeExpenseSummary)}
+          ${renderWalletDonutChart(walletBalances)}
+        </div>
+      </section>
       ${renderReportTable(
         'Bank Balances',
         [
@@ -898,6 +1225,16 @@ function renderOverview(data) {
         ],
         data.bankBalances,
         'No bank balances found.'
+      )}
+      ${renderReportTable(
+        'Wallet Balances',
+        [
+          { label: 'Wallet', value: row => row.walletName || row.name },
+          { label: 'Currency', value: row => row.currency || 'INR' },
+          { label: 'Balance', value: row => formatCurrency(row.balance) },
+        ],
+        walletBalances,
+        'No wallet balances found.'
       )}
       ${renderReportTable(
         'Monthly Expenses',
@@ -922,11 +1259,63 @@ function renderOverview(data) {
   `;
 }
 
+function isWalletTransferResponse(data) {
+  return Boolean(
+    data &&
+    typeof data === 'object' &&
+    data.debitTransaction &&
+    data.creditTransaction &&
+    'fromWalletBalance' in data &&
+    'toWalletBalance' in data
+  );
+}
+
+function renderWalletTransferResponse(data) {
+  const fromWalletId = data?.fromWalletId ?? data?.debitTransaction?.walletId ?? '-';
+  const toWalletId = data?.toWalletId ?? data?.creditTransaction?.walletId ?? '-';
+  const amount = data?.amount ?? data?.debitTransaction?.amount ?? 0;
+  const transferredAt = data?.transferredAt ?? data?.creditTransaction?.createdAt ?? data?.debitTransaction?.createdAt;
+
+  return `
+    <div class="kv-grid">
+      <div class="kv-item"><div class="kv-key">From Wallet</div><div class="kv-val">${escapeHtml(fromWalletId)}</div></div>
+      <div class="kv-item"><div class="kv-key">To Wallet</div><div class="kv-val">${escapeHtml(toWalletId)}</div></div>
+      <div class="kv-item"><div class="kv-key">Amount</div><div class="kv-val">${escapeHtml(formatCurrency(amount))}</div></div>
+      <div class="kv-item"><div class="kv-key">Transferred At</div><div class="kv-val">${escapeHtml(formatDateTime(transferredAt))}</div></div>
+      <div class="kv-item"><div class="kv-key">From Wallet Balance</div><div class="kv-val">${escapeHtml(formatCurrency(data?.fromWalletBalance))}</div></div>
+      <div class="kv-item"><div class="kv-key">To Wallet Balance</div><div class="kv-val">${escapeHtml(formatCurrency(data?.toWalletBalance))}</div></div>
+    </div>
+    <div class="account-result-cards">
+      <article class="account-result-card">
+        <p><strong>Debit Entry ID -</strong> ${escapeHtml(data?.debitTransaction?.id ?? '-')}</p>
+        <p><strong>Wallet ID -</strong> ${escapeHtml(data?.debitTransaction?.walletId ?? '-')}</p>
+        <p><strong>Type -</strong> ${escapeHtml(data?.debitTransaction?.type ?? '-')}</p>
+        <p><strong>Amount -</strong> ${escapeHtml(formatCurrency(data?.debitTransaction?.amount))}</p>
+        <p><strong>Category -</strong> ${escapeHtml(data?.debitTransaction?.category ?? '-')}</p>
+        <p><strong>Description -</strong> ${escapeHtml(data?.debitTransaction?.description ?? '-')}</p>
+      </article>
+      <article class="account-result-card">
+        <p><strong>Credit Entry ID -</strong> ${escapeHtml(data?.creditTransaction?.id ?? '-')}</p>
+        <p><strong>Wallet ID -</strong> ${escapeHtml(data?.creditTransaction?.walletId ?? '-')}</p>
+        <p><strong>Type -</strong> ${escapeHtml(data?.creditTransaction?.type ?? '-')}</p>
+        <p><strong>Amount -</strong> ${escapeHtml(formatCurrency(data?.creditTransaction?.amount))}</p>
+        <p><strong>Category -</strong> ${escapeHtml(data?.creditTransaction?.category ?? '-')}</p>
+        <p><strong>Description -</strong> ${escapeHtml(data?.creditTransaction?.description ?? '-')}</p>
+      </article>
+    </div>
+  `;
+}
+
 function renderResult(data) {
   if (!resultEl) return;
 
   if (isReportOverview(data)) {
     resultEl.innerHTML = renderOverview(data);
+    return;
+  }
+
+  if (isWalletTransferResponse(data)) {
+    resultEl.innerHTML = renderWalletTransferResponse(data);
     return;
   }
 
@@ -947,6 +1336,17 @@ function renderResult(data) {
     return;
   }
 
+  const extractedWallets = extractWalletRecords(data);
+  if (extractedWallets.length) {
+    resultEl.innerHTML = renderWalletCards(extractedWallets);
+    return;
+  }
+
+  if (data && typeof data === 'object' && Array.isArray(data.content)) {
+    resultEl.innerHTML = renderTable(data.content);
+    return;
+  }
+
   const body = Array.isArray(data) ? renderTable(data) : renderKeyValue(data);
   resultEl.innerHTML = body;
 }
@@ -957,9 +1357,12 @@ async function api(path, options = {}, action = 'request', config = {}) {
   const timeout = setTimeout(() => controller.abort(), 20000);
 
   const headers = {
-    'Content-Type': 'application/json',
     ...(options.headers || {}),
   };
+
+  if (options.body != null && !Object.keys(headers).some(key => key.toLowerCase() === 'content-type')) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const bearer = currentToken();
   if (bearer) {
@@ -989,7 +1392,7 @@ async function api(path, options = {}, action = 'request', config = {}) {
 
   if (!response.ok) {
     const message = response.status === 401
-      ? 'Unauthorized. This action requires an authenticated session.'
+      ? 'Unauthorized or session expired. Please login again.'
       : getErrorMessage(action, data, response.status);
 
     setStatus(message, false);
@@ -1000,6 +1403,9 @@ async function api(path, options = {}, action = 'request', config = {}) {
       renderResult(data);
     }
     if (responseDrawerEl) responseDrawerEl.open = true;
+    if (response.status === 401) {
+      logout(workspaceLoginRoute());
+    }
     const err = new Error(message);
     err.toastShown = toastError;
     throw err;
@@ -1075,7 +1481,7 @@ async function handleAction(action) {
       return run('/bank-accounts', {
         method: 'POST',
         body: JSON.stringify({
-          userId: roleUserId('ba-userId', 'User ID'),
+          userId: reportUserId(),
           bankName: requireText('ba-bankName', 'Bank name'),
           accountNumber: requireText('ba-accountNumber', 'Account number'),
           initialBalance: requireNumber('ba-initialBalance', 'Initial balance'),
@@ -1086,10 +1492,87 @@ async function handleAction(action) {
       return run(`/bank-accounts/${requireNumber('ba-account-id', 'Account ID')}`);
 
     case 'list-bank-accounts':
-      return run(`/bank-accounts/user/${roleUserId('ba-user-list', 'User ID')}`);
+      return run(`/bank-accounts/user/${reportUserId()}`);
 
     case 'delete-bank-account':
       return run(`/bank-accounts/${requireNumber('ba-delete-id', 'Delete Account ID')}`, { method: 'DELETE' });
+
+    case 'create-wallet': {
+      const rawInitialBalance = val('w-initialBalance');
+      const parsedInitialBalance = rawInitialBalance === '' ? 0 : Number(rawInitialBalance);
+      if (Number.isNaN(parsedInitialBalance) || parsedInitialBalance < 0) {
+        throw new Error('Initial balance cannot be negative');
+      }
+
+      return run('/wallets', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: requireText('w-name', 'Wallet name'),
+          initialBalance: parsedInitialBalance,
+          currency: val('w-currency') || 'INR',
+        }),
+      });
+    }
+
+    case 'list-wallets':
+      return run('/wallets');
+
+    case 'get-wallet':
+      return run(`/wallets/${requireNumber('w-id-get', 'Wallet ID')}`);
+
+    case 'delete-wallet':
+      return run(`/wallets/${requireNumber('w-id-delete', 'Delete Wallet ID')}`, { method: 'DELETE' });
+
+    case 'wallet-deposit':
+      return run('/transactions/deposit', {
+        method: 'POST',
+        body: JSON.stringify({
+          walletId: requireNumber('wt-deposit-walletId', 'Wallet ID'),
+          amount: requireNumber('wt-deposit-amount', 'Deposit amount'),
+          category: optionalText('wt-deposit-category'),
+          description: optionalText('wt-deposit-description'),
+        }),
+      });
+
+    case 'wallet-withdraw':
+      return run('/transactions/withdraw', {
+        method: 'POST',
+        body: JSON.stringify({
+          walletId: requireNumber('wt-withdraw-walletId', 'Wallet ID'),
+          amount: requireNumber('wt-withdraw-amount', 'Withdraw amount'),
+          category: optionalText('wt-withdraw-category'),
+          description: optionalText('wt-withdraw-description'),
+        }),
+      });
+
+    case 'wallet-transfer':
+      return run('/transactions/transfer', {
+        method: 'POST',
+        body: JSON.stringify({
+          fromWalletId: requireNumber('wt-transfer-fromWalletId', 'From wallet ID'),
+          toWalletId: requireNumber('wt-transfer-toWalletId', 'To wallet ID'),
+          amount: requireNumber('wt-transfer-amount', 'Transfer amount'),
+          category: optionalText('wt-transfer-category'),
+          description: optionalText('wt-transfer-description'),
+        }),
+      });
+
+    case 'wallet-list-transactions': {
+      const walletId = requireNumber('wt-history-walletId', 'Wallet ID');
+      const rawPage = val('wt-history-page');
+      const rawSize = val('wt-history-size');
+      const page = rawPage === '' ? 0 : Number(rawPage);
+      const size = rawSize === '' ? 20 : Number(rawSize);
+
+      if (Number.isNaN(page) || page < 0) {
+        throw new Error('Page must be zero or greater');
+      }
+      if (Number.isNaN(size) || size <= 0) {
+        throw new Error('Size must be greater than zero');
+      }
+
+      return run(`/wallets/${walletId}/transactions?page=${page}&size=${size}`);
+    }
 
     case 'record-income':
       return run('/transactions/income', {
@@ -1098,6 +1581,7 @@ async function handleAction(action) {
           bankAccountId: requireNumber('tx-income-bankAccountId', 'Income Bank Account ID'),
           amount: requireNumber('tx-income-amount', 'Income amount'),
           category: val('tx-income-category'),
+          paymentMethod: requireText('tx-income-paymentMethod', 'Income payment method'),
           description: val('tx-income-description'),
         }),
       });
@@ -1109,23 +1593,14 @@ async function handleAction(action) {
           bankAccountId: requireNumber('tx-expense-bankAccountId', 'Expense Bank Account ID'),
           amount: requireNumber('tx-expense-amount', 'Expense amount'),
           category: val('tx-expense-category'),
+          paymentMethod: requireText('tx-expense-paymentMethod', 'Expense payment method'),
           description: val('tx-expense-description'),
-        }),
-      });
-
-    case 'record-atm':
-      return run('/transactions/atm-withdrawal', {
-        method: 'POST',
-        body: JSON.stringify({
-          bankAccountId: requireNumber('tx-atm-bankAccountId', 'ATM Bank Account ID'),
-          amount: requireNumber('tx-atm-amount', 'ATM amount'),
-          description: val('tx-atm-description'),
         }),
       });
 
     case 'list-transactions':
     {
-      const userId = roleUserId('tx-user-list', 'User ID');
+      const userId = reportUserId();
       const params = new URLSearchParams();
 
       const fromDate = val('tx-filter-fromDate');
@@ -1171,6 +1646,7 @@ async function handleAction(action) {
     case 'transfer-funds': {
       const transferType = requireText('tr-transferType', 'Transfer type');
       const destinationAccountId = num('tr-destinationAccountId');
+      const destinationWalletId = num('tr-destinationWalletId');
       const mobileNumber = val('tr-mobileNumber');
       const upiId = val('tr-upiId');
       const receiverName = val('tr-receiverName');
@@ -1183,6 +1659,7 @@ async function handleAction(action) {
         body: JSON.stringify({
           sourceAccountId: requireNumber('tr-sourceAccountId', 'Source Account ID'),
           destinationAccountId,
+          destinationWalletId,
           transferType,
           selfTransfer,
           mobileNumber,
@@ -1292,11 +1769,16 @@ function bindTransferRouteUX() {
 
   const hints = {
     ACCOUNT: 'Route set to account transfer. Enter destination account ID.',
+    WALLET: 'Route set to wallet transfer. Enter destination wallet ID.',
     MOBILE: 'Route set to mobile transfer. Enter receiver mobile number.',
     UPI: 'Route set to UPI transfer. Enter beneficiary UPI ID.'
   };
 
-  const defaultPaymentMethod = route => (route === 'ACCOUNT' ? 'NET_BANKING' : 'UPI');
+  const defaultPaymentMethod = route => {
+    if (route === 'ACCOUNT') return 'NET_BANKING';
+    if (route === 'WALLET') return 'WALLET';
+    return 'UPI';
+  };
 
   if (paymentMethodEl instanceof HTMLSelectElement) {
     paymentMethodEl.dataset.autoSet = paymentMethodEl.value ? 'false' : 'true';
@@ -1350,7 +1832,7 @@ if (logoutButton) {
 
 bootstrapSession();
 function reportPath(path) {
-  const userId = reportUserId('r-userId', 'User ID');
+  const userId = reportUserId();
   const adminPathMap = {
     '/bank-balances': `/reports/users/${userId}/bank-balances`,
     '/monthly-expenses': `/reports/users/${userId}/expenses/monthly`,

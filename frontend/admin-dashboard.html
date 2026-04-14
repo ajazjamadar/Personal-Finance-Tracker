@@ -37,7 +37,7 @@
             <div>
               <p class="kicker">Admin Workspace</p>
               <h1 id="welcomeTitle">Operations Dashboard</h1>
-              <p class="lead">Monitor platform metrics, transaction flow, system health, recent activity, and finance alerts from one admin-only workspace.</p>
+              <p class="lead">Monitor bank and wallet metrics, transaction flow, system health, recent activity, and finance alerts from one admin-only workspace.</p>
             </div>
             <div class="admin-hero-actions">
               <p id="adminDashboardUpdatedAt" class="dashboard-updated-at">Waiting for dashboard sync...</p>
@@ -122,6 +122,18 @@
             </div>
           </article>
 
+          <article class="card dashboard-section-card">
+            <div class="dashboard-section-heading">
+              <div>
+                <p class="section-tag">Wallet Ledger</p>
+                <h3>Recent Wallet Transactions</h3>
+              </div>
+            </div>
+            <div id="adminRecentWalletTransactions" class="dashboard-table-slot">
+              <p class="dashboard-empty">Recent wallet transactions are loading.</p>
+            </div>
+          </article>
+
           <article class="card dashboard-section-card section-full">
             <div class="dashboard-section-heading">
               <div>
@@ -152,11 +164,31 @@
 
               <section class="alert-column">
                 <div class="alert-column-head">
+                  <h4>Low Wallet Balances</h4>
+                  <p>Wallets below the configured admin threshold.</p>
+                </div>
+                <div id="adminLowWalletBalances" class="alert-list">
+                  <p class="dashboard-empty">Low wallet alerts are loading.</p>
+                </div>
+              </section>
+
+              <section class="alert-column">
+                <div class="alert-column-head">
                   <h4>Suspicious / High Value</h4>
                   <p>Transactions above the monitoring threshold.</p>
                 </div>
                 <div id="adminSuspiciousTransactions" class="alert-list">
                   <p class="dashboard-empty">High value alerts are loading.</p>
+                </div>
+              </section>
+
+              <section class="alert-column">
+                <div class="alert-column-head">
+                  <h4>Suspicious Wallet Activity</h4>
+                  <p>Wallet movements above the monitoring threshold.</p>
+                </div>
+                <div id="adminSuspiciousWalletTransactions" class="alert-list">
+                  <p class="dashboard-empty">High value wallet alerts are loading.</p>
                 </div>
               </section>
             </div>

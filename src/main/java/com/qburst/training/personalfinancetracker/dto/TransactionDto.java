@@ -25,6 +25,11 @@ public class TransactionDto {
 
             String receiverName,
 
+            @NotBlank(message = "Payment method is required")
+            @Pattern(
+                    regexp = "(?i)UPI|CARD|NET_BANKING|WALLET",
+                    message = "Payment method must be one of UPI, CARD, NET_BANKING, WALLET"
+            )
             String paymentMethod
     ) {}
 

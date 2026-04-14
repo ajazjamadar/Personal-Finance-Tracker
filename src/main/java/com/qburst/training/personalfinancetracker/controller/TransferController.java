@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/transfers")
-@Tag(name = "Transfers", description = "Fund transfers to accounts, mobile numbers, or UPI IDs")
+@Tag(name = "Transfers", description = "Fund transfers to accounts, wallets, mobile numbers, or UPI IDs")
 public class TransferController {
 
     private final TransferService transferService;

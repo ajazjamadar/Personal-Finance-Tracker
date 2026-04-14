@@ -9,15 +9,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bank_accounts")
+@Table(name = "wallets")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
-@SQLDelete(sql = "UPDATE bank_accounts SET is_deleted = true, deleted_at = NOW() WHERE id=?")
+@SQLDelete(sql = "UPDATE wallets SET is_deleted = true, updated_at = NOW() WHERE id=?")
 @Where(clause = "is_deleted = false")
-public class BankAccount {
+public class Wallet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,15 +26,17 @@ public class BankAccount {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bank_id", nullable = false)
-    private Bank bank;
+    @Column(nullable = false, length = 100)
+    private String name;
 
-    @Column(unique = true, length = 50)
-    private String accountNumber;
-
-    @Column(precision = 15, scale = 2, nullable = false)
+    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal balance;
+
+    @Column(nullable = false, length = 10)
+    private String currency;
+
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
 
     @Version
     private Long version;
@@ -43,21 +44,26 @@ public class BankAccount {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private Boolean isDeleted = false;
-
-    private LocalDateTime deletedAt;
+    private LocalDateTime updatedAt;
 
     @PrePersist
     private void onCreate() {
-        createdAt = LocalDateTime.now();
-
         if (balance == null) {
             balance = BigDecimal.ZERO;
         }
-
+        if (currency == null || currency.isBlank()) {
+            currency = "INR";
+        }
         if (isDeleted == null) {
             isDeleted = false;
         }
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

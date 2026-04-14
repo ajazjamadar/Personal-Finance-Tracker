@@ -84,12 +84,12 @@ public class Transaction {
     public enum TransactionType {
         INCOME,
         EXPENSE,
-        ATM_WITHDRAWAL,
         TRANSFER
     }
 
     public enum TransferType {
         ACCOUNT,
+        WALLET,
         MOBILE,
         UPI
     }

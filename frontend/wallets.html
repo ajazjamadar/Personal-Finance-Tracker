@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FinTrack | Reports</title>
+  <title>FinTrack | Wallets</title>
   <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg?v=3" />
   <link rel="shortcut icon" href="assets/fintrack-icon.svg?v=3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="page-sidebar page-reports">
+<body class="page-sidebar">
   <div class="page-wrapper">
   <header class="site-header">
     <div class="container header-row">
@@ -23,8 +23,8 @@
         <a href="accounts.html">Accounts</a>
         <a href="transactions.html">Transactions</a>
         <a href="transfers.html">Transfers</a>
-        <a class="active-link" href="reports.html">Reports</a>
-        <a class="user-only-nav" href="wallets.html">Wallets</a>
+        <a href="reports.html">Reports</a>
+        <a class="active-link user-only-nav" href="wallets.html">Wallets</a>
         <a class="user-only-nav" href="wallet-transactions.html">Wallet Txns</a>
       </nav>
       <div class="admin-sidebar-meta">
@@ -37,29 +37,45 @@
   <main class="dashboard-main">
     <section class="dashboard-hero">
       <div class="container">
-        <p class="kicker">Reports Module</p>
-        <h1 id="welcomeTitle">Financial Reports</h1>
-        <p class="lead">Generate bank balance summaries and expense analytics for your account.</p>
+        <p class="kicker">Wallet Module</p>
+        <h1 id="welcomeTitle">Wallet Management</h1>
+        <p class="lead">Create personal wallets and manage balances with secure user-scoped access.</p>
       </div>
     </section>
 
     <section class="features">
       <div class="container ops-grid two-col">
         <article class="card op-card">
-          <h3>Report Actions</h3>
+          <h3>Create Wallet</h3>
+          <div class="form-grid">
+            <input id="w-name" placeholder="Wallet name" />
+            <input id="w-initialBalance" type="number" step="0.01" placeholder="Initial balance (optional)" />
+            <select id="w-currency">
+              <option value="INR" selected>INR</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" data-action="create-wallet" type="button">Create Wallet</button>
+        </article>
+
+        <article class="card op-card">
+          <h3>Wallet Actions</h3>
+          <div class="form-grid">
+            <input id="w-id-get" type="number" placeholder="Wallet ID" />
+            <input id="w-id-delete" type="number" placeholder="Delete Wallet ID" />
+          </div>
           <div class="btn-row">
-            <button class="btn btn-primary" data-action="report-overview" type="button">Overview</button>
-            <button class="btn btn-secondary" data-action="report-bank-balances" type="button">Bank Balances</button>
-            <button class="btn btn-secondary" data-action="report-monthly-expenses" type="button">Monthly Expenses</button>
-            <button class="btn btn-secondary" data-action="report-category-expense" type="button">By Category</button>
-            <button class="btn btn-secondary" data-action="report-summary" type="button">Income vs Expense</button>
+            <button class="btn btn-secondary" data-action="list-wallets" type="button">List Wallets</button>
+            <button class="btn btn-secondary" data-action="get-wallet" type="button">Get Wallet</button>
+            <button class="btn btn-danger" data-action="delete-wallet" type="button">Delete Wallet</button>
           </div>
         </article>
 
         <article class="card op-card result-card module-result">
           <h3>Response</h3>
           <p id="statusLine" class="status-line">Ready</p>
-          <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
+          <div id="result" class="result-box"><p class="result-empty">Run any wallet action to see results.</p></div>
         </article>
       </div>
     </section>
@@ -69,23 +85,6 @@
   <footer class="site-footer">
     <div class="container">
       <p>© <span id="year"></span> FinTrack. All rights reserved.</p>
-      <div class="footer-extra">
-        <div class="footer-grid">
-          <div class="footer-panels">
-            <article class="footer-panel">
-              <h4>Insight Reports</h4>
-              <p>Understand spending patterns by month, category, and account type.</p>
-            </article>
-            <article class="footer-panel">
-              <h4>Better Decisions</h4>
-              <p>Use report trends to improve your savings and budget planning cycle.</p>
-            </article>
-          </div>
-          <div class="footer-photo">
-            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80" alt="Financial charts and report dashboard" />
-          </div>
-        </div>
-      </div>
     </div>
   </footer>
 

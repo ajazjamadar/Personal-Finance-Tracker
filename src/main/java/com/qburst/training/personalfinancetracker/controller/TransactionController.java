@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/transactions")
-@Tag(name = "Transactions", description = "Record account income, expenses, and ATM withdrawals")
+@Tag(name = "Transactions", description = "Record account income and expenses")
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -42,15 +42,6 @@ public class TransactionController {
             @Valid @RequestBody TransactionDto.Request request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(transactionService.recordExpense(request));
-    }
-
-    @PostMapping("/atm-withdrawal")
-    @Operation(summary = "ATM withdrawal")
-    @ApiResponse(responseCode = "201", description = "Withdrawal recorded")
-    public ResponseEntity<TransactionDto.Response> recordAtmWithdrawal(
-            @Valid @RequestBody TransactionDto.Request request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(transactionService.recordAtmWithdrawal(request));
     }
 
     @GetMapping("/user/{userId}")

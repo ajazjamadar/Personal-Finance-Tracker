@@ -38,7 +38,6 @@ public final class TransactionSpecifications {
                 } else {
                     predicates = cb.and(predicates, root.get("transactionType").in(
                             Transaction.TransactionType.EXPENSE,
-                            Transaction.TransactionType.ATM_WITHDRAWAL,
                             Transaction.TransactionType.TRANSFER));
                 }
             }

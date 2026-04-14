@@ -16,6 +16,12 @@ public class ReportDto {
             BigDecimal totalExpense
     ) {}
 
+    public record WalletBalance(
+            String walletName,
+            BigDecimal balance,
+            String currency
+    ) {}
+
     public record IncomeExpenseSummary(
             BigDecimal totalIncome,
             BigDecimal totalExpense,
@@ -24,6 +30,7 @@ public class ReportDto {
 
     public record Overview(
             List<BankAccountDto.BalanceSummary> bankBalances,
+            List<WalletBalance> walletBalances,
             List<MonthlyExpense> monthlyExpenses,
             List<CategoryExpense> expenseByCategory,
             IncomeExpenseSummary incomeExpenseSummary

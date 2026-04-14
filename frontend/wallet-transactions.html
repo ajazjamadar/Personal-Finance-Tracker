@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinTrack | Wallet Transactions</title>
+  <link rel="icon" type="image/svg+xml" href="assets/fintrack-icon.svg?v=3" />
+  <link rel="shortcut icon" href="assets/fintrack-icon.svg?v=3" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="page-sidebar">
+  <div class="page-wrapper">
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="users.html" aria-label="FinTrack users">
+        <img src="assets/fintrack-logo.svg?v=3" alt="FinTrack" />
+      </a>
+      <nav class="main-nav">
+        <a href="users.html">Users</a>
+        <a href="accounts.html">Accounts</a>
+        <a href="transactions.html">Transactions</a>
+        <a href="transfers.html">Transfers</a>
+        <a href="reports.html">Reports</a>
+        <a class="user-only-nav" href="wallets.html">Wallets</a>
+        <a class="active-link user-only-nav" href="wallet-transactions.html">Wallet Transactions</a>
+      </nav>
+      <div class="admin-sidebar-meta">
+        <p id="sessionInfo" class="session-chip">User session</p>
+        <button id="logoutButton" class="btn btn-secondary" type="button">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <section class="dashboard-hero">
+      <div class="container">
+        <p class="kicker">Wallet Transactions</p>
+        <h1 id="welcomeTitle">Deposit, Withdraw, Transfer</h1>
+        <p class="lead">Record wallet credits, debits, and transfers while keeping balances consistent.</p>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="container ops-grid two-col">
+        <article class="card op-card">
+          <h3>Deposit</h3>
+          <div class="form-grid">
+            <input id="wt-deposit-walletId" type="number" placeholder="Wallet ID" />
+            <input id="wt-deposit-amount" type="number" step="0.01" placeholder="Amount" />
+            <input id="wt-deposit-category" placeholder="Category (optional)" />
+            <input id="wt-deposit-description" placeholder="Description (optional)" />
+          </div>
+          <button class="btn btn-primary" data-action="wallet-deposit" type="button">Deposit</button>
+        </article>
+
+        <article class="card op-card">
+          <h3>Withdraw</h3>
+          <div class="form-grid">
+            <input id="wt-withdraw-walletId" type="number" placeholder="Wallet ID" />
+            <input id="wt-withdraw-amount" type="number" step="0.01" placeholder="Amount" />
+            <input id="wt-withdraw-category" placeholder="Category (optional)" />
+            <input id="wt-withdraw-description" placeholder="Description (optional)" />
+          </div>
+          <button class="btn btn-primary" data-action="wallet-withdraw" type="button">Withdraw</button>
+        </article>
+
+        <article class="card op-card">
+          <h3>Transfer</h3>
+          <div class="form-grid">
+            <input id="wt-transfer-fromWalletId" type="number" placeholder="From Wallet ID" />
+            <input id="wt-transfer-toWalletId" type="number" placeholder="To Wallet ID" />
+            <input id="wt-transfer-amount" type="number" step="0.01" placeholder="Amount" />
+            <input id="wt-transfer-category" placeholder="Category (optional)" />
+            <input id="wt-transfer-description" placeholder="Description (optional)" />
+          </div>
+          <button class="btn btn-primary" data-action="wallet-transfer" type="button">Transfer</button>
+        </article>
+
+        <article class="card op-card">
+          <h3>Transaction History</h3>
+          <div class="form-grid">
+            <input id="wt-history-walletId" type="number" placeholder="Wallet ID" />
+            <input id="wt-history-page" type="number" placeholder="Page (default 0)" />
+            <input id="wt-history-size" type="number" placeholder="Size (default 20)" />
+          </div>
+          <button class="btn btn-secondary" data-action="wallet-list-transactions" type="button">Load History</button>
+        </article>
+
+        <article class="card op-card result-card module-result">
+          <h3>Response</h3>
+          <p id="statusLine" class="status-line">Ready</p>
+          <div id="result" class="result-box"><p class="result-empty">Run any wallet transaction action to see results.</p></div>
+        </article>
+      </div>
+    </section>
+  </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year"></span> FinTrack. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

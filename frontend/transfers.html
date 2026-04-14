@@ -24,7 +24,13 @@
         <a href="transactions.html">Transactions</a>
         <a class="active-link" href="transfers.html">Transfers</a>
         <a href="reports.html">Reports</a>
+        <a class="user-only-nav" href="wallets.html">Wallets</a>
+        <a class="user-only-nav" href="wallet-transactions.html">Wallet Txns</a>
       </nav>
+      <div class="admin-sidebar-meta">
+        <p id="sessionInfo" class="session-chip">User session</p>
+        <button id="logoutButton" class="btn btn-secondary" type="button">Logout</button>
+      </div>
     </div>
   </header>
 
@@ -33,7 +39,7 @@
       <div class="container">
         <p class="kicker">Transfers Module</p>
         <h1 id="welcomeTitle">Fund Transfer Operations</h1>
-        <p class="lead">Initiate or mark sent transfers by deducting from source account and saving receiver details.</p>
+        <p class="lead">Initiate or mark sent transfers by deducting from source account and crediting account, wallet, or external destinations.</p>
       </div>
     </section>
 
@@ -65,6 +71,7 @@
                   <span>Transfer Type</span>
                   <select id="tr-transferType">
                     <option value="ACCOUNT">Account</option>
+                    <option value="WALLET">Wallet</option>
                     <option value="MOBILE">Mobile Number</option>
                     <option value="UPI">UPI ID</option>
                   </select>
@@ -96,6 +103,10 @@
                 <label class="field-stack" data-transfer-field="ACCOUNT">
                   <span>Destination Account ID</span>
                   <input id="tr-destinationAccountId" type="number" placeholder="Enter beneficiary account ID" />
+                </label>
+                <label class="field-stack" data-transfer-field="WALLET">
+                  <span>Destination Wallet ID</span>
+                  <input id="tr-destinationWalletId" type="number" placeholder="Enter destination wallet ID" />
                 </label>
                 <label class="field-stack" data-transfer-field="MOBILE">
                   <span>Mobile Number</span>
@@ -144,7 +155,7 @@
           <div class="footer-panels">
             <article class="footer-panel">
               <h4>Transfer Flow</h4>
-              <p>Move funds to account, mobile, or UPI destinations with clear source tracking.</p>
+              <p>Move funds to account, wallet, mobile, or UPI destinations with clear source tracking.</p>
             </article>
             <article class="footer-panel">
               <h4>Sync Balances</h4>

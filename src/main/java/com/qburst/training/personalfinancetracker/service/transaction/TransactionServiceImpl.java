@@ -2,6 +2,7 @@ package com.qburst.training.personalfinancetracker.service.transaction;
 
 import com.qburst.training.personalfinancetracker.dto.TransactionDto;
 import com.qburst.training.personalfinancetracker.entity.BankAccount;
+import com.qburst.training.personalfinancetracker.entity.Category;
 import com.qburst.training.personalfinancetracker.entity.Transaction;
 import com.qburst.training.personalfinancetracker.entity.Transaction.PaymentMethod;
 import com.qburst.training.personalfinancetracker.entity.Transaction.TransactionStatus;
@@ -10,6 +11,7 @@ import com.qburst.training.personalfinancetracker.entity.User;
 import com.qburst.training.personalfinancetracker.exception.InsufficientBalanceException;
 import com.qburst.training.personalfinancetracker.exception.ResourceNotFoundException;
 import com.qburst.training.personalfinancetracker.repository.BankAccountRepository;
+import com.qburst.training.personalfinancetracker.repository.CategoryRepository;
 import com.qburst.training.personalfinancetracker.repository.TransactionRepository;
 import com.qburst.training.personalfinancetracker.repository.TransactionSpecifications;
 import com.qburst.training.personalfinancetracker.repository.UserRepository;
@@ -28,15 +30,18 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final BankAccountRepository bankAccountRepository;
+    private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final AuthContextService authContextService;
 
     public TransactionServiceImpl(TransactionRepository transactionRepository,
                                   BankAccountRepository bankAccountRepository,
+                                  CategoryRepository categoryRepository,
                                   UserRepository userRepository,
                                   AuthContextService authContextService) {
         this.transactionRepository = transactionRepository;
         this.bankAccountRepository = bankAccountRepository;
+        this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.authContextService = authContextService;
     }
@@ -51,7 +56,7 @@ public class TransactionServiceImpl implements TransactionService {
         return buildAndSave(
             account.getUser(), TransactionType.INCOME,
                 request.amount(), request.description(),
-            account, null, request.category(), request.receiverName(), resolvePaymentMethod(request.paymentMethod(), PaymentMethod.NET_BANKING));
+            account, null, request.category(), request.receiverName(), resolvePaymentMethod(request.paymentMethod()));
     }
 
     @Override
@@ -65,21 +70,7 @@ public class TransactionServiceImpl implements TransactionService {
         return buildAndSave(
             account.getUser(), TransactionType.EXPENSE,
                 request.amount(), request.description(),
-            account, null, request.category(), request.receiverName(), resolvePaymentMethod(request.paymentMethod(), PaymentMethod.CARD));
-    }
-
-    @Override
-    @Transactional
-    public TransactionDto.Response recordAtmWithdrawal(TransactionDto.Request request) {
-        BankAccount account = getBankAccount(request.bankAccountId());
-        authContextService.ensureCanAccessUser(account.getUser().getId());
-        checkBalance(account.getBalance(), request.amount(), "Bank account");
-        account.setBalance(account.getBalance().subtract(request.amount()));
-        bankAccountRepository.save(account);
-        return buildAndSave(
-                account.getUser(), TransactionType.ATM_WITHDRAWAL,
-                request.amount(), request.description(),
-            account, null, "ATM", request.receiverName(), resolvePaymentMethod(request.paymentMethod(), PaymentMethod.WALLET));
+            account, null, request.category(), request.receiverName(), resolvePaymentMethod(request.paymentMethod()));
     }
 
     @Override
@@ -126,6 +117,8 @@ public class TransactionServiceImpl implements TransactionService {
             String categoryName,
             String receiverName,
             PaymentMethod paymentMethod) {
+        String normalizedCategoryName = normalizeText(categoryName);
+        Category category = resolveCategory(normalizedCategoryName);
 
         Transaction tx = new Transaction();
         tx.setUser(user);
@@ -134,7 +127,8 @@ public class TransactionServiceImpl implements TransactionService {
         tx.setDescription(description);
         tx.setSourceBankAccount(sourceBankAccount);
         tx.setDestBankAccount(destBankAccount);
-        tx.setCategoryName(normalizeText(categoryName));
+        tx.setCategory(category);
+        tx.setCategoryName(category == null ? null : category.getName());
         tx.setReceiverName(normalizeText(receiverName));
         tx.setPaymentMethod(paymentMethod);
         tx.setStatus(TransactionStatus.SUCCESS);
@@ -181,11 +175,27 @@ public class TransactionServiceImpl implements TransactionService {
                 tx.getCreatedAt());
     }
 
-    private PaymentMethod resolvePaymentMethod(String raw, PaymentMethod fallback) {
+    private PaymentMethod resolvePaymentMethod(String raw) {
         if (raw == null || raw.isBlank()) {
-            return fallback;
+            throw new IllegalArgumentException("Payment method is required");
         }
-        return PaymentMethod.valueOf(raw.trim().toUpperCase(Locale.ROOT).replace(' ', '_'));
+        String normalized = raw.trim().toUpperCase(Locale.ROOT).replace(' ', '_');
+        try {
+            return PaymentMethod.valueOf(normalized);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException(
+                    "Unsupported payment method. Use one of: UPI, CARD, NET_BANKING, WALLET");
+        }
+    }
+
+    private Category resolveCategory(String name) {
+        if (name == null) {
+            return null;
+        }
+        return categoryRepository.findFirstByNameIgnoreCase(name)
+                .orElseGet(() -> categoryRepository.save(
+                        Category.builder().name(name).build()
+                ));
     }
 
     private String normalizeText(String value) {

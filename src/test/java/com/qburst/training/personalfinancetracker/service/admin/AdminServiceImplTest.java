@@ -6,10 +6,14 @@ import com.qburst.training.personalfinancetracker.entity.BankAccount;
 import com.qburst.training.personalfinancetracker.entity.Transaction;
 import com.qburst.training.personalfinancetracker.entity.User;
 import com.qburst.training.personalfinancetracker.entity.UserRole;
+import com.qburst.training.personalfinancetracker.entity.Wallet;
+import com.qburst.training.personalfinancetracker.entity.WalletTransaction;
 import com.qburst.training.personalfinancetracker.repository.BankAccountRepository;
 import com.qburst.training.personalfinancetracker.repository.BankRepository;
 import com.qburst.training.personalfinancetracker.repository.TransactionRepository;
 import com.qburst.training.personalfinancetracker.repository.UserRepository;
+import com.qburst.training.personalfinancetracker.repository.WalletRepository;
+import com.qburst.training.personalfinancetracker.repository.WalletTransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,10 +37,13 @@ class AdminServiceImplTest {
     @Autowired private BankRepository bankRepository;
     @Autowired private BankAccountRepository bankAccountRepository;
     @Autowired private TransactionRepository transactionRepository;
+    @Autowired private WalletRepository walletRepository;
+    @Autowired private WalletTransactionRepository walletTransactionRepository;
 
     private User primaryUser;
     private User recentAdmin;
     private BankAccount lowBalanceAccount;
+    private Wallet lowBalanceWallet;
 
     @BeforeEach
     void setUp() {
@@ -128,6 +135,47 @@ class AdminServiceImplTest {
                 .categoryName("Operations")
                 .createdAt(now.minusMinutes(5))
                 .build());
+
+        lowBalanceWallet = walletRepository.save(Wallet.builder()
+                .user(primaryUser)
+                .name("Cash Wallet")
+                .balance(new BigDecimal("250.00"))
+                .currency("INR")
+                .build());
+
+        Wallet healthyWallet = walletRepository.save(Wallet.builder()
+                .user(recentAdmin)
+                .name("Travel Wallet")
+                .balance(new BigDecimal("3000.00"))
+                .currency("INR")
+                .build());
+
+        walletTransactionRepository.save(WalletTransaction.builder()
+                .wallet(lowBalanceWallet)
+                .type(WalletTransaction.WalletTransactionType.DEBIT)
+                .amount(new BigDecimal("90.00"))
+                .category("Snacks")
+                .description("Wallet debit")
+                .createdAt(now.minusMinutes(16))
+                .build());
+
+        walletTransactionRepository.save(WalletTransaction.builder()
+                .wallet(healthyWallet)
+                .type(WalletTransaction.WalletTransactionType.CREDIT)
+                .amount(new BigDecimal("450.00"))
+                .category("Refund")
+                .description("Wallet credit")
+                .createdAt(now.minusMinutes(14))
+                .build());
+
+        walletTransactionRepository.save(WalletTransaction.builder()
+                .wallet(healthyWallet)
+                .type(WalletTransaction.WalletTransactionType.TRANSFER)
+                .amount(new BigDecimal("30000.00"))
+                .category("Transfer")
+                .description("High-value wallet transfer")
+                .createdAt(now.minusMinutes(8))
+                .build());
     }
 
     @Test
@@ -136,28 +184,39 @@ class AdminServiceImplTest {
         AdminDashboardDto.Response dashboard = adminService.getDashboard();
 
         assertThat(dashboard.keyMetrics().totalUsers()).isEqualTo(2);
-        assertThat(dashboard.keyMetrics().totalAccounts()).isEqualTo(2);
+        assertThat(dashboard.keyMetrics().totalBankAccounts()).isEqualTo(2);
+        assertThat(dashboard.keyMetrics().totalWallets()).isEqualTo(2);
+        assertThat(dashboard.keyMetrics().totalAccounts()).isEqualTo(4);
         assertThat(dashboard.keyMetrics().totalTransactions()).isEqualTo(4);
+        assertThat(dashboard.keyMetrics().totalWalletTransactions()).isEqualTo(3);
         assertThat(dashboard.keyMetrics().totalTransferVolume()).isEqualByComparingTo("1500.00");
 
         assertThat(dashboard.snapshot().today().transactions()).isEqualTo(4);
+        assertThat(dashboard.snapshot().today().walletTransactions()).isEqualTo(3);
         assertThat(dashboard.snapshot().today().transfers()).isEqualTo(3);
         assertThat(dashboard.snapshot().today().newUsers()).isEqualTo(2);
         assertThat(dashboard.snapshot().thisMonth().transactions()).isEqualTo(4);
+        assertThat(dashboard.snapshot().thisMonth().walletTransactions()).isEqualTo(3);
 
         assertThat(dashboard.systemHealth().failedTransactionsCount()).isEqualTo(1);
         assertThat(dashboard.systemHealth().pendingTransfersCount()).isEqualTo(1);
         assertThat(dashboard.systemHealth().failedTransfersCount()).isEqualTo(1);
+        assertThat(dashboard.systemHealth().lowWalletBalanceCount()).isEqualTo(1);
         assertThat(dashboard.systemHealth().apiStatus()).isEqualTo("UP");
 
         assertThat(dashboard.recentActivity().latestTransactions()).hasSize(4);
+        assertThat(dashboard.recentActivity().latestWalletTransactions()).hasSize(3);
         assertThat(dashboard.recentActivity().recentUserRegistrations()).hasSize(2);
         assertThat(dashboard.recentActivity().recentTransfers()).hasSize(3);
 
         assertThat(dashboard.alerts().failedTransfers()).hasSize(1);
         assertThat(dashboard.alerts().lowBalanceIssues()).hasSize(1);
         assertThat(dashboard.alerts().lowBalanceIssues().getFirst().accountId()).isEqualTo(lowBalanceAccount.getId());
+        assertThat(dashboard.alerts().lowWalletBalanceIssues()).hasSize(1);
+        assertThat(dashboard.alerts().lowWalletBalanceIssues().getFirst().walletId()).isEqualTo(lowBalanceWallet.getId());
         assertThat(dashboard.alerts().suspiciousTransactions()).hasSize(1);
         assertThat(dashboard.alerts().suspiciousTransactions().getFirst().amount()).isEqualByComparingTo("60000.00");
+        assertThat(dashboard.alerts().suspiciousWalletTransactions()).hasSize(1);
+        assertThat(dashboard.alerts().suspiciousWalletTransactions().getFirst().amount()).isEqualByComparingTo("30000.00");
     }
 }
