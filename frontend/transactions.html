@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="page-sidebar">
+<body class="page-sidebar page-transactions">
   <div class="page-wrapper">
   <header class="site-header">
     <div class="container header-row">
@@ -39,7 +39,7 @@
       <div class="container">
         <p class="kicker">Transactions Module</p>
         <h1 id="welcomeTitle">Transaction Management</h1>
-        <p class="lead">Record income and expenses against bank accounts, then review transaction history.</p>
+        <p class="lead">Record income and expenses, then audit account activity with production-grade filtering.</p>
       </div>
     </section>
 
@@ -47,26 +47,42 @@
       <div class="container ops-grid two-col">
         <article class="card op-card">
           <h3>Record Income</h3>
+          <p class="card-desc">Capture inbound account transactions with category and payment context.</p>
           <div class="form-grid single">
-            <input id="tx-income-bankAccountId" type="number" placeholder="Income Bank Account ID" />
-            <input id="tx-income-amount" type="number" step="0.01" placeholder="Income Amount" />
-            <select id="tx-income-category">
-              <option value="" selected>Select Income Category</option>
-              <option value="Salary">Salary</option>
-              <option value="Freelance">Freelance</option>
-              <option value="Business">Business</option>
-              <option value="Investment">Investment</option>
-              <option value="Gift">Gift</option>
-              <option value="Other">Other</option>
-            </select>
-            <select id="tx-income-paymentMethod">
-              <option value="" selected>Select Payment Method</option>
-              <option value="UPI">UPI</option>
-              <option value="CARD">Card</option>
-              <option value="NET_BANKING">Net Banking</option>
-              <option value="WALLET">Wallet</option>
-            </select>
-            <input id="tx-income-description" placeholder="Income Description" />
+            <label class="field-stack">
+              <span>Bank Account ID</span>
+              <input id="tx-income-bankAccountId" type="number" placeholder="Enter bank account ID" />
+            </label>
+            <label class="field-stack">
+              <span>Amount</span>
+              <input id="tx-income-amount" type="number" step="0.01" placeholder="Enter income amount" />
+            </label>
+            <label class="field-stack">
+              <span>Category</span>
+              <select id="tx-income-category">
+                <option value="" selected>Select Income Category</option>
+                <option value="Salary">Salary</option>
+                <option value="Freelance">Freelance</option>
+                <option value="Business">Business</option>
+                <option value="Investment">Investment</option>
+                <option value="Gift">Gift</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label class="field-stack">
+              <span>Payment Method</span>
+              <select id="tx-income-paymentMethod">
+                <option value="" selected>Select Payment Method</option>
+                <option value="UPI">UPI</option>
+                <option value="CARD">Card</option>
+                <option value="NET_BANKING">Net Banking</option>
+                <option value="WALLET">Wallet</option>
+              </select>
+            </label>
+            <label class="field-stack">
+              <span>Description</span>
+              <input id="tx-income-description" placeholder="Optional note for this income" />
+            </label>
           </div>
           <div class="btn-row">
             <button class="btn btn-primary" data-action="record-income" type="button">Record Income</button>
@@ -75,55 +91,91 @@
 
         <article class="card op-card">
           <h3>Add Expense</h3>
+          <p class="card-desc">Track outgoing account transactions with category and payment details.</p>
           <div class="form-grid single">
-            <input id="tx-expense-bankAccountId" type="number" placeholder="Expense Bank Account ID" />
-            <input id="tx-expense-amount" type="number" step="0.01" placeholder="Expense Amount" />
-            <select id="tx-expense-category">
-              <option value="" selected>Select Expense Category</option>
-              <option value="Food">Food</option>
-              <option value="Travel">Travel</option>
-              <option value="Bills">Bills</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Health">Health</option>
-              <option value="Education">Education</option>
-              <option value="Others">Others</option>
-            </select>
-            <select id="tx-expense-paymentMethod">
-              <option value="" selected>Select Payment Method</option>
-              <option value="UPI">UPI</option>
-              <option value="CARD">Card</option>
-              <option value="NET_BANKING">Net Banking</option>
-              <option value="WALLET">Wallet</option>
-            </select>
-            <input id="tx-expense-description" placeholder="Expense Description" />
+            <label class="field-stack">
+              <span>Bank Account ID</span>
+              <input id="tx-expense-bankAccountId" type="number" placeholder="Enter bank account ID" />
+            </label>
+            <label class="field-stack">
+              <span>Amount</span>
+              <input id="tx-expense-amount" type="number" step="0.01" placeholder="Enter expense amount" />
+            </label>
+            <label class="field-stack">
+              <span>Category</span>
+              <select id="tx-expense-category">
+                <option value="" selected>Select Expense Category</option>
+                <option value="Food">Food</option>
+                <option value="Travel">Travel</option>
+                <option value="Bills">Bills</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Health">Health</option>
+                <option value="Education">Education</option>
+                <option value="Others">Others</option>
+              </select>
+            </label>
+            <label class="field-stack">
+              <span>Payment Method</span>
+              <select id="tx-expense-paymentMethod">
+                <option value="" selected>Select Payment Method</option>
+                <option value="UPI">UPI</option>
+                <option value="CARD">Card</option>
+                <option value="NET_BANKING">Net Banking</option>
+                <option value="WALLET">Wallet</option>
+              </select>
+            </label>
+            <label class="field-stack">
+              <span>Description</span>
+              <input id="tx-expense-description" placeholder="Optional note for this expense" />
+            </label>
           </div>
           <div class="btn-row">
             <button class="btn btn-primary" data-action="record-expense" type="button">Add Expense</button>
           </div>
         </article>
 
-        <article class="card op-card">
+        <article class="card op-card section-full">
           <h3>Transaction History</h3>
-          <div class="form-grid single">
-            <div class="form-grid">
+          <p class="card-desc">Apply filters to review account movement by date, amount, type, method, and counterparty.</p>
+          <div class="form-grid">
+            <label class="field-stack">
+              <span>From Date</span>
               <input id="tx-filter-fromDate" type="date" placeholder="From date" />
+            </label>
+            <label class="field-stack">
+              <span>To Date</span>
               <input id="tx-filter-toDate" type="date" placeholder="To date" />
+            </label>
+            <label class="field-stack">
+              <span>Transaction Type</span>
               <select id="tx-filter-transactionType">
-                <option value="" selected>Transaction Type (All)</option>
+                <option value="" selected>All</option>
                 <option value="CREDIT">CREDIT</option>
                 <option value="DEBIT">DEBIT</option>
               </select>
-              <input id="tx-filter-minAmount" type="number" step="0.01" placeholder="Min amount" />
-              <input id="tx-filter-maxAmount" type="number" step="0.01" placeholder="Max amount" />
+            </label>
+            <label class="field-stack">
+              <span>Status</span>
               <select id="tx-filter-status">
-                <option value="" selected>Status (All)</option>
+                <option value="" selected>All</option>
                 <option value="SUCCESS">SUCCESS</option>
                 <option value="FAILED">FAILED</option>
                 <option value="PENDING">PENDING</option>
                 <option value="INITIATED">INITIATED</option>
                 <option value="SENT">SENT</option>
               </select>
+            </label>
+            <label class="field-stack">
+              <span>Min Amount</span>
+              <input id="tx-filter-minAmount" type="number" step="0.01" placeholder="Minimum amount" />
+            </label>
+            <label class="field-stack">
+              <span>Max Amount</span>
+              <input id="tx-filter-maxAmount" type="number" step="0.01" placeholder="Maximum amount" />
+            </label>
+            <label class="field-stack">
+              <span>Category</span>
               <input id="tx-filter-category" list="tx-category-options" placeholder="Category contains..." />
               <datalist id="tx-category-options">
                 <option value="Salary"></option>
@@ -142,36 +194,56 @@
                 <option value="Other"></option>
                 <option value="Others"></option>
               </datalist>
+            </label>
+            <label class="field-stack">
+              <span>Payment Method</span>
               <select id="tx-filter-paymentMethod">
-                <option value="" selected>Payment Method (All)</option>
+                <option value="" selected>All</option>
                 <option value="UPI">UPI</option>
                 <option value="CARD">Card</option>
                 <option value="NET_BANKING">Net Banking</option>
                 <option value="WALLET">Wallet</option>
               </select>
-              <input id="tx-filter-accountId" type="number" placeholder="Account ID filter" />
-              <input id="tx-filter-receiver" placeholder="Merchant / Receiver" />
-            </div>
+            </label>
+            <label class="field-stack">
+              <span>Account ID</span>
+              <input id="tx-filter-accountId" type="number" placeholder="Filter by account ID" />
+            </label>
+            <label class="field-stack">
+              <span>Merchant / Receiver</span>
+              <input id="tx-filter-receiver" placeholder="Name contains..." />
+            </label>
           </div>
           <div class="btn-row">
-            <button class="btn btn-secondary" data-action="list-transactions" type="button">Transaction History</button>
+            <button class="btn btn-secondary" data-action="list-transactions" type="button">Load History</button>
+            <button class="btn btn-secondary" data-action="clear-tx-filters" type="button">Clear Filters</button>
           </div>
         </article>
 
         <article class="card op-card">
-          <h3>Get By ID</h3>
+          <h3>Transaction Lookup</h3>
+          <p class="card-desc">Fetch a single transaction receipt using its unique transaction ID.</p>
           <div class="form-grid single">
-            <input id="tx-id" type="number" placeholder="Transaction ID" />
+            <label class="field-stack">
+              <span>Transaction ID</span>
+              <input id="tx-id" type="number" placeholder="Enter transaction ID" />
+            </label>
           </div>
           <div class="btn-row">
-            <button class="btn btn-secondary" data-action="get-transaction" type="button">Get By ID</button>
+            <button class="btn btn-secondary" data-action="get-transaction" type="button">Get Details</button>
           </div>
         </article>
 
-        <article class="card op-card result-card module-result">
-          <h3>Response</h3>
-          <p id="statusLine" class="status-line">Ready</p>
-          <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
+        <article class="card op-card result-card module-result workspace-result-card">
+          <div class="workspace-head">
+            <div>
+              <p class="workspace-kicker">Activity Workspace</p>
+              <h3>Transaction Intelligence</h3>
+              <p class="workspace-subtitle">Action receipts, summary KPIs, and transaction tables are shown here in a product-ready format.</p>
+            </div>
+            <p id="statusLine" class="status-line">Ready</p>
+          </div>
+          <div id="result" class="result-box"><p class="result-empty">Run a transaction action to populate the activity workspace.</p></div>
         </article>
       </div>
     </section>

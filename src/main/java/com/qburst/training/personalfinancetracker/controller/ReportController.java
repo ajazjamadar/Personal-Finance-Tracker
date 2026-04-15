@@ -6,7 +6,10 @@ import com.qburst.training.personalfinancetracker.service.report.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -21,48 +24,38 @@ public class ReportController {
         this.reportService = reportService;
     }
 
-    @GetMapping({"/bank-balances", "/users/{userId}/bank-balances"})
+    @GetMapping("/bank-balances")
     @Operation(summary = "Bank balance summary")
     public ResponseEntity<List<BankAccountDto.BalanceSummary>> getBankBalances(
-            @RequestParam(required = false) Long userId,
-            @PathVariable(required = false) Long pathUserId) {
-        Long effectiveUserId = pathUserId != null ? pathUserId : userId;
-        return ResponseEntity.ok(reportService.getBankBalanceSummary(effectiveUserId));
+            @RequestParam(required = false) Long userId) {
+        return ResponseEntity.ok(reportService.getBankBalanceSummary(userId));
     }
 
-    @GetMapping({"/monthly-expenses", "/expenses/monthly", "/users/{userId}/expenses/monthly"})
+    @GetMapping("/monthly-expenses")
     @Operation(summary = "Monthly expense summary")
     public ResponseEntity<List<ReportDto.MonthlyExpense>> getMonthlyExpenses(
-            @RequestParam(required = false) Long userId,
-            @PathVariable(required = false) Long pathUserId) {
-        Long effectiveUserId = pathUserId != null ? pathUserId : userId;
-        return ResponseEntity.ok(reportService.getMonthlyExpenses(effectiveUserId));
+            @RequestParam(required = false) Long userId) {
+        return ResponseEntity.ok(reportService.getMonthlyExpenses(userId));
     }
 
-    @GetMapping({"/expense-by-category", "/expenses/by-category", "/users/{userId}/expenses/by-category"})
+    @GetMapping("/expense-by-category")
     @Operation(summary = "Expense breakdown by category")
     public ResponseEntity<List<ReportDto.CategoryExpense>> getExpenseByCategory(
-            @RequestParam(required = false) Long userId,
-            @PathVariable(required = false) Long pathUserId) {
-        Long effectiveUserId = pathUserId != null ? pathUserId : userId;
-        return ResponseEntity.ok(reportService.getExpenseByCategory(effectiveUserId));
+            @RequestParam(required = false) Long userId) {
+        return ResponseEntity.ok(reportService.getExpenseByCategory(userId));
     }
 
-    @GetMapping({"/income-expense-summary", "/summary", "/users/{userId}/summary"})
+    @GetMapping("/income-expense-summary")
     @Operation(summary = "Income vs expense summary")
     public ResponseEntity<ReportDto.IncomeExpenseSummary> getIncomeExpenseSummary(
-            @RequestParam(required = false) Long userId,
-            @PathVariable(required = false) Long pathUserId) {
-        Long effectiveUserId = pathUserId != null ? pathUserId : userId;
-        return ResponseEntity.ok(reportService.getIncomeExpenseSummary(effectiveUserId));
+            @RequestParam(required = false) Long userId) {
+        return ResponseEntity.ok(reportService.getIncomeExpenseSummary(userId));
     }
 
-    @GetMapping({"/overview", "/users/{userId}/overview"})
+    @GetMapping("/overview")
     @Operation(summary = "Full financial report overview")
     public ResponseEntity<ReportDto.Overview> getOverview(
-            @RequestParam(required = false) Long userId,
-            @PathVariable(required = false) Long pathUserId) {
-        Long effectiveUserId = pathUserId != null ? pathUserId : userId;
-        return ResponseEntity.ok(reportService.getOverview(effectiveUserId));
+            @RequestParam(required = false) Long userId) {
+        return ResponseEntity.ok(reportService.getOverview(userId));
     }
 }

@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="page-sidebar">
+<body class="page-sidebar page-wallet-transactions">
   <div class="page-wrapper">
   <header class="site-header">
     <div class="container header-row">
@@ -39,7 +39,7 @@
       <div class="container">
         <p class="kicker">Wallet Transactions</p>
         <h1 id="welcomeTitle">Deposit, Withdraw, Transfer</h1>
-        <p class="lead">Record wallet credits, debits, and transfers while keeping balances consistent.</p>
+        <p class="lead">Manage wallet cashflow with clear operation receipts and auditable transaction history.</p>
       </div>
     </section>
 
@@ -47,52 +47,118 @@
       <div class="container ops-grid two-col">
         <article class="card op-card">
           <h3>Deposit</h3>
-          <div class="form-grid">
-            <input id="wt-deposit-walletId" type="number" placeholder="Wallet ID" />
-            <input id="wt-deposit-amount" type="number" step="0.01" placeholder="Amount" />
-            <input id="wt-deposit-category" placeholder="Category (optional)" />
-            <input id="wt-deposit-description" placeholder="Description (optional)" />
+          <p class="card-desc">Credit money to a wallet with category and note metadata for later reporting.</p>
+          <div class="form-grid single">
+            <label class="field-stack">
+              <span>Wallet ID</span>
+              <input id="wt-deposit-walletId" type="number" placeholder="Enter wallet ID" />
+            </label>
+            <label class="field-stack">
+              <span>Amount</span>
+              <input id="wt-deposit-amount" type="number" step="0.01" placeholder="Enter amount" />
+            </label>
+            <label class="field-stack">
+              <span>Category</span>
+              <input id="wt-deposit-category" placeholder="Optional category" />
+            </label>
+            <label class="field-stack">
+              <span>Description</span>
+              <input id="wt-deposit-description" placeholder="Optional note" />
+            </label>
           </div>
-          <button class="btn btn-primary" data-action="wallet-deposit" type="button">Deposit</button>
+          <div class="btn-row">
+            <button class="btn btn-primary" data-action="wallet-deposit" type="button">Deposit</button>
+          </div>
         </article>
 
         <article class="card op-card">
           <h3>Withdraw</h3>
-          <div class="form-grid">
-            <input id="wt-withdraw-walletId" type="number" placeholder="Wallet ID" />
-            <input id="wt-withdraw-amount" type="number" step="0.01" placeholder="Amount" />
-            <input id="wt-withdraw-category" placeholder="Category (optional)" />
-            <input id="wt-withdraw-description" placeholder="Description (optional)" />
+          <p class="card-desc">Debit money from a wallet while preserving accurate transaction trail details.</p>
+          <div class="form-grid single">
+            <label class="field-stack">
+              <span>Wallet ID</span>
+              <input id="wt-withdraw-walletId" type="number" placeholder="Enter wallet ID" />
+            </label>
+            <label class="field-stack">
+              <span>Amount</span>
+              <input id="wt-withdraw-amount" type="number" step="0.01" placeholder="Enter amount" />
+            </label>
+            <label class="field-stack">
+              <span>Category</span>
+              <input id="wt-withdraw-category" placeholder="Optional category" />
+            </label>
+            <label class="field-stack">
+              <span>Description</span>
+              <input id="wt-withdraw-description" placeholder="Optional note" />
+            </label>
           </div>
-          <button class="btn btn-primary" data-action="wallet-withdraw" type="button">Withdraw</button>
+          <div class="btn-row">
+            <button class="btn btn-primary" data-action="wallet-withdraw" type="button">Withdraw</button>
+          </div>
         </article>
 
         <article class="card op-card">
-          <h3>Transfer</h3>
-          <div class="form-grid">
-            <input id="wt-transfer-fromWalletId" type="number" placeholder="From Wallet ID" />
-            <input id="wt-transfer-toWalletId" type="number" placeholder="To Wallet ID" />
-            <input id="wt-transfer-amount" type="number" step="0.01" placeholder="Amount" />
-            <input id="wt-transfer-category" placeholder="Category (optional)" />
-            <input id="wt-transfer-description" placeholder="Description (optional)" />
+          <h3>Wallet-to-Wallet Transfer</h3>
+          <p class="card-desc">Move funds between wallets and receive a dual-entry debit-credit operation receipt.</p>
+          <div class="form-grid single">
+            <label class="field-stack">
+              <span>From Wallet ID</span>
+              <input id="wt-transfer-fromWalletId" type="number" placeholder="Source wallet" />
+            </label>
+            <label class="field-stack">
+              <span>To Wallet ID</span>
+              <input id="wt-transfer-toWalletId" type="number" placeholder="Destination wallet" />
+            </label>
+            <label class="field-stack">
+              <span>Amount</span>
+              <input id="wt-transfer-amount" type="number" step="0.01" placeholder="Transfer amount" />
+            </label>
+            <label class="field-stack">
+              <span>Category</span>
+              <input id="wt-transfer-category" placeholder="Optional category" />
+            </label>
+            <label class="field-stack">
+              <span>Description</span>
+              <input id="wt-transfer-description" placeholder="Optional note" />
+            </label>
           </div>
-          <button class="btn btn-primary" data-action="wallet-transfer" type="button">Transfer</button>
+          <div class="btn-row">
+            <button class="btn btn-primary" data-action="wallet-transfer" type="button">Transfer</button>
+          </div>
         </article>
 
         <article class="card op-card">
-          <h3>Transaction History</h3>
-          <div class="form-grid">
-            <input id="wt-history-walletId" type="number" placeholder="Wallet ID" />
-            <input id="wt-history-page" type="number" placeholder="Page (default 0)" />
-            <input id="wt-history-size" type="number" placeholder="Size (default 20)" />
+          <h3>Wallet Transaction History</h3>
+          <p class="card-desc">Load paginated wallet activity for reconciliation and timeline analysis.</p>
+          <div class="form-grid single">
+            <label class="field-stack">
+              <span>Wallet ID</span>
+              <input id="wt-history-walletId" type="number" placeholder="Enter wallet ID" />
+            </label>
+            <label class="field-stack">
+              <span>Page</span>
+              <input id="wt-history-page" type="number" placeholder="Default 0" />
+            </label>
+            <label class="field-stack">
+              <span>Page Size</span>
+              <input id="wt-history-size" type="number" placeholder="Default 20" />
+            </label>
           </div>
-          <button class="btn btn-secondary" data-action="wallet-list-transactions" type="button">Load History</button>
+          <div class="btn-row">
+            <button class="btn btn-secondary" data-action="wallet-list-transactions" type="button">Load History</button>
+          </div>
         </article>
 
-        <article class="card op-card result-card module-result">
-          <h3>Response</h3>
-          <p id="statusLine" class="status-line">Ready</p>
-          <div id="result" class="result-box"><p class="result-empty">Run any wallet transaction action to see results.</p></div>
+        <article class="card op-card result-card module-result workspace-result-card">
+          <div class="workspace-head">
+            <div>
+              <p class="workspace-kicker">Wallet Activity Workspace</p>
+              <h3>Ledger Intelligence</h3>
+              <p class="workspace-subtitle">Operation receipts and wallet ledger history are presented here with a production-grade structure.</p>
+            </div>
+            <p id="statusLine" class="status-line">Ready</p>
+          </div>
+          <div id="result" class="result-box"><p class="result-empty">Run any wallet transaction action to populate this workspace.</p></div>
         </article>
       </div>
     </section>

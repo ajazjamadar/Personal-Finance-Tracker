@@ -120,10 +120,16 @@
           <button class="btn btn-primary" data-action="admin-update-user" type="button">Update User</button>
         </article>
 
-        <article class="card op-card result-card module-result">
-          <h3>Response</h3>
-          <p id="statusLine" class="status-line">Ready</p>
-          <div id="result" class="result-box"><p class="result-empty">Run any admin user action to see results.</p></div>
+        <article class="card op-card result-card module-result workspace-result-card">
+          <div class="workspace-head">
+            <div>
+              <p class="workspace-kicker">User Workspace</p>
+              <h3>Profile Operations</h3>
+              <p class="workspace-subtitle">User directory insights and action receipts are rendered here.</p>
+            </div>
+            <p id="statusLine" class="status-line">Ready</p>
+          </div>
+          <div id="result" class="result-box"><p class="result-empty">Run an admin user action to load the workspace.</p></div>
         </article>
       </div>
     </section>

@@ -39,27 +39,34 @@
       <div class="container">
         <p class="kicker">Reports Module</p>
         <h1 id="welcomeTitle">Financial Reports</h1>
-        <p class="lead">Generate bank balance summaries and expense analytics for your account.</p>
+        <p class="lead">Generate decision-ready insights from balances, category spending, and income-versus-expense trends.</p>
       </div>
     </section>
 
     <section class="features">
       <div class="container ops-grid two-col">
         <article class="card op-card">
-          <h3>Report Actions</h3>
+          <h3>Report Studio</h3>
+          <p class="card-desc">Run focused reports or a complete overview dashboard with visual analytics.</p>
           <div class="btn-row">
-            <button class="btn btn-primary" data-action="report-overview" type="button">Overview</button>
+            <button class="btn btn-primary" data-action="report-overview" type="button">Generate Overview</button>
             <button class="btn btn-secondary" data-action="report-bank-balances" type="button">Bank Balances</button>
             <button class="btn btn-secondary" data-action="report-monthly-expenses" type="button">Monthly Expenses</button>
-            <button class="btn btn-secondary" data-action="report-category-expense" type="button">By Category</button>
+            <button class="btn btn-secondary" data-action="report-category-expense" type="button">Expense by Category</button>
             <button class="btn btn-secondary" data-action="report-summary" type="button">Income vs Expense</button>
           </div>
         </article>
 
-        <article class="card op-card result-card module-result">
-          <h3>Response</h3>
-          <p id="statusLine" class="status-line">Ready</p>
-          <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
+        <article class="card op-card result-card module-result workspace-result-card">
+          <div class="workspace-head">
+            <div>
+              <p class="workspace-kicker">Insight Workspace</p>
+              <h3>Financial Intelligence</h3>
+              <p class="workspace-subtitle">Summaries, charts, and analysis-ready tables are rendered here after each report run.</p>
+            </div>
+            <p id="statusLine" class="status-line">Ready</p>
+          </div>
+          <div id="result" class="result-box"><p class="result-empty">Choose a report action to load your analytics workspace.</p></div>
         </article>
       </div>
     </section>

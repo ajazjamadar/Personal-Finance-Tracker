@@ -68,41 +68,20 @@
           </div>
         </article>
 
-        <article class="card op-card result-card module-result">
-          <h3>Response</h3>
-          <p id="statusLine" class="status-line">Ready</p>
-          <div id="result" class="result-box"><p class="result-empty">Run any request to see results.</p></div>
-        </article>
-      </div>
-    </section>
-
-    <section id="accountsAdminWorkspace" class="features" hidden>
-      <div class="container ops-grid">
-        <article class="card op-card">
-          <h3>View All Accounts</h3>
-          <p class="card-desc">Load all user bank accounts from the admin workspace.</p>
-          <button class="btn btn-secondary" data-action="admin-accounts" type="button">View All Accounts</button>
-        </article>
-
-        <article class="card op-card">
-          <h3>Update User Bank Account</h3>
-          <div class="form-grid">
-            <input id="admin-account-id" type="number" placeholder="Account ID" />
-            <input id="admin-account-user-id" type="number" placeholder="User ID" />
-            <input id="admin-account-bank-name" placeholder="Bank name" />
-            <input id="admin-account-number" placeholder="Account number" />
-            <input id="admin-account-balance" type="number" step="0.01" placeholder="Balance" />
+        <article class="card op-card result-card module-result workspace-result-card">
+          <div class="workspace-head">
+            <div>
+              <p class="workspace-kicker">Account Workspace</p>
+              <h3>Bank Account Insights</h3>
+              <p class="workspace-subtitle">Account summaries and operation receipts are shown here.</p>
+            </div>
+            <p id="statusLine" class="status-line">Ready</p>
           </div>
-          <button class="btn btn-primary" data-action="admin-update-account" type="button">Update Account</button>
-        </article>
-
-        <article class="card op-card result-card module-result">
-          <h3>Response</h3>
-          <p id="statusLine" class="status-line">Ready</p>
-          <div id="result" class="result-box"><p class="result-empty">Run any admin account action to see results.</p></div>
+          <div id="result" class="result-box"><p class="result-empty">Run an account action to load workspace output.</p></div>
         </article>
       </div>
     </section>
+
   </main>
   </div>
 

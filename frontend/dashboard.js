@@ -15,8 +15,8 @@ const API_BASE = window.location.protocol.startsWith('http')
   ? `${window.location.protocol}//${window.location.hostname || 'localhost'}:8080/api`
   : 'http://localhost:8080/api';
 
-const statusLine = document.getElementById('statusLine');
-const resultEl = document.getElementById('result');
+const statusLineEls = Array.from(document.querySelectorAll('#statusLine'));
+const resultEls = Array.from(document.querySelectorAll('#result'));
 const responseDrawerEl = document.getElementById('responseDrawer');
 const toastStackEl = document.getElementById('toastStack');
 const sessionInfoEl = document.getElementById('sessionInfo');
@@ -52,6 +52,18 @@ const adminLowWalletBalancesEl = document.getElementById('adminLowWalletBalances
 const adminSuspiciousTransactionsEl = document.getElementById('adminSuspiciousTransactions');
 const adminSuspiciousWalletTransactionsEl = document.getElementById('adminSuspiciousWalletTransactions');
 
+function activeWorkspaceElement(elements) {
+  return elements.find(node => !node.closest('[hidden]')) || elements[0] || null;
+}
+
+function currentStatusLine() {
+  return activeWorkspaceElement(statusLineEls);
+}
+
+function currentResultEl() {
+  return activeWorkspaceElement(resultEls);
+}
+
 const actionFeedback = {
   'admin-dashboard': { success: 'Admin dashboard refreshed', error: 'Failed to load admin dashboard' },
   'update-user': { success: 'User profile updated successfully', error: 'Failed to update profile' },
@@ -62,6 +74,7 @@ const actionFeedback = {
   'record-income': { success: 'Income recorded successfully', error: 'Failed to record income' },
   'record-expense': { success: 'Expense recorded successfully', error: 'Failed to record expense' },
   'list-transactions': { success: 'Transactions loaded', error: 'Failed to list transactions' },
+  'clear-tx-filters': { success: 'Transaction filters cleared', error: 'Failed to clear transaction filters' },
   'get-transaction': { success: 'Transaction loaded', error: 'Failed to fetch transaction' },
   'transfer-funds': { success: 'Transfer completed successfully', error: 'Failed to transfer funds' },
   'report-bank-balances': { success: 'Bank balance report generated', error: 'Failed to generate bank balance report' },
@@ -263,6 +276,22 @@ function applyRoleDefaults() {
     return;
   }
 
+  document.querySelectorAll('.user-only-nav').forEach(link => {
+    link.hidden = false;
+  });
+
+  if (usersSelfWorkspaceEl) usersSelfWorkspaceEl.hidden = false;
+  if (usersAdminWorkspaceEl) usersAdminWorkspaceEl.hidden = true;
+  if (accountsSelfWorkspaceEl) accountsSelfWorkspaceEl.hidden = false;
+  if (accountsAdminWorkspaceEl) accountsAdminWorkspaceEl.hidden = true;
+
+  if (usersLeadEl) {
+    usersLeadEl.textContent = 'Your profile details are fetched automatically after login.';
+  }
+  if (accountsLeadEl) {
+    accountsLeadEl.textContent = 'Create, fetch, list, and delete bank accounts.';
+  }
+
   ['admin-users', 'admin-create-user', 'admin-update-user', 'admin-accounts', 'admin-update-account'].forEach(action => {
     const button = document.querySelector(`[data-action="${action}"]`);
     if (!button) return;
@@ -306,6 +335,7 @@ async function bootstrapSession() {
 }
 
 function setStatus(message, ok = true) {
+  const statusLine = currentStatusLine();
   if (!statusLine) return;
   statusLine.textContent = message;
   statusLine.className = `status-line ${ok ? 'ok' : 'err'}`;
@@ -374,6 +404,16 @@ function optionalText(id) {
   return value || null;
 }
 
+function clearFieldValues(ids = []) {
+  ids.forEach(id => {
+    const field = document.getElementById(id);
+    if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) {
+      return;
+    }
+    field.value = '';
+  });
+}
+
 function escapeHtml(input) {
   return String(input)
     .replaceAll('&', '&amp;')
@@ -381,6 +421,43 @@ function escapeHtml(input) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+function humanizeKey(key) {
+  if (!key) return '';
+  return String(key)
+    .replaceAll('_', ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function renderWorkspaceLayout({ title, subtitle, metrics = [], bodyHtml = '', highlights = [] }) {
+  const metricCards = metrics.filter(item => item && item.value != null && item.value !== '').map(item => `
+    <article class="workspace-metric ${item.tone || 'neutral'}">
+      <p>${escapeHtml(item.label || 'Metric')}</p>
+      <strong>${escapeHtml(String(item.value))}</strong>
+    </article>
+  `).join('');
+
+  const highlightTags = highlights.filter(Boolean).map(tag => `
+    <span class="workspace-tag">${escapeHtml(String(tag))}</span>
+  `).join('');
+
+  return `
+    <section class="workspace-result">
+      <header class="workspace-result-head">
+        <div>
+          <p class="workspace-result-kicker">${escapeHtml(title || 'Result')}</p>
+          <h4>${escapeHtml(subtitle || 'Processed response')}</h4>
+        </div>
+      </header>
+      ${metricCards ? `<div class="workspace-metrics">${metricCards}</div>` : ''}
+      ${highlightTags ? `<div class="workspace-tags">${highlightTags}</div>` : ''}
+      <div class="workspace-body">${bodyHtml}</div>
+    </section>
+  `;
 }
 
 function renderTable(items) {
@@ -396,7 +473,7 @@ function renderTable(items) {
   return `
     <div class="result-table-wrap">
       <table class="result-table">
-        <thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>
+        <thead><tr>${columns.map(c => `<th>${escapeHtml(humanizeKey(c))}</th>`).join('')}</tr></thead>
         <tbody>
           ${items.map(row => `
             <tr>${columns.map(c => `<td>${escapeHtml(row?.[c] ?? '')}</td>`).join('')}</tr>
@@ -417,7 +494,7 @@ function renderKeyValue(data) {
     <div class="kv-grid">
       ${entries.map(([key, value]) => {
         const printable = typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value);
-        return `<div class="kv-item"><div class="kv-key">${escapeHtml(key)}</div><div class="kv-val">${escapeHtml(printable)}</div></div>`;
+        return `<div class="kv-item"><div class="kv-key">${escapeHtml(humanizeKey(key))}</div><div class="kv-val">${escapeHtml(printable)}</div></div>`;
       }).join('')}
     </div>
   `;
@@ -504,12 +581,12 @@ function renderWalletCards(records) {
     <div class="account-result-cards">
       ${normalizedRecords.map(wallet => `
         <article class="account-result-card">
-          <p><strong>Wallet ID -</strong> ${escapeHtml(wallet.id ?? '-')}</p>
-          <p><strong>Name -</strong> ${escapeHtml(wallet.name ?? '-')}</p>
-          <p><strong>Balance -</strong> ${escapeHtml(formatCurrency(wallet.balance))}</p>
-          <p><strong>Currency -</strong> ${escapeHtml(wallet.currency ?? 'INR')}</p>
-          <p><strong>Created At -</strong> ${escapeHtml(formatDateTime(wallet.createdAt))}</p>
-          <p><strong>Updated At -</strong> ${escapeHtml(formatDateTime(wallet.updatedAt))}</p>
+          <p><strong>Wallet ID:</strong> ${escapeHtml(wallet.id ?? '-')}</p>
+          <p><strong>Name:</strong> ${escapeHtml(wallet.name ?? '-')}</p>
+          <p><strong>Balance:</strong> ${escapeHtml(formatCurrency(wallet.balance))}</p>
+          <p><strong>Currency:</strong> ${escapeHtml(wallet.currency ?? 'INR')}</p>
+          <p><strong>Created At:</strong> ${escapeHtml(formatDateTime(wallet.createdAt))}</p>
+          <p><strong>Updated At:</strong> ${escapeHtml(formatDateTime(wallet.updatedAt))}</p>
         </article>
       `).join('')}
     </div>
@@ -855,50 +932,439 @@ function normalizeTransactionRecord(item) {
     paymentMethod: item.paymentMethod ?? '-',
     receiverName: item.receiverName ?? '-',
     description: item.description ?? '-',
+    createdAtRaw: item.createdAt ?? null,
     createdAt: formatDateTime(item.createdAt),
   };
 }
 
 function extractTransactionRecords(data) {
-  if (!Array.isArray(data)) return [];
-  return data.map(normalizeTransactionRecord).filter(Boolean);
-}
-
-function renderTransactionTable(records) {
-  if (!records.length) {
-    return '<p class="result-empty">No records found.</p>';
+  if (Array.isArray(data)) {
+    return data.map(normalizeTransactionRecord).filter(Boolean);
   }
 
-  const columns = [
-    'id',
-    'userId',
-    'transactionType',
-    'transferType',
-    'selfTransfer',
-    'sourceAccountId',
-    'destinationAccountId',
-    'destinationValue',
-    'amount',
-    'category',
-    'status',
-    'paymentMethod',
-    'receiverName',
-    'description',
-    'createdAt',
-  ];
+  if (data && typeof data === 'object') {
+    const single = normalizeTransactionRecord(data);
+    if (single) return [single];
 
-  return `
+    if (Array.isArray(data.transactions)) {
+      return data.transactions.map(normalizeTransactionRecord).filter(Boolean);
+    }
+  }
+
+  return [];
+}
+
+function amountOfTransaction(record) {
+  const value = Number(record?.amount ?? 0);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function transactionTypeTone(type) {
+  const normalized = String(type || '').toUpperCase();
+  if (normalized === 'CREDIT') return 'success';
+  if (normalized === 'DEBIT') return 'warning';
+  return 'neutral';
+}
+
+function renderTransactionTypePill(type) {
+  return `<span class="status-pill ${transactionTypeTone(type)}">${escapeHtml(type || 'UNKNOWN')}</span>`;
+}
+
+function summarizeTransactions(records) {
+  const summary = {
+    totalCount: records.length,
+    creditCount: 0,
+    debitCount: 0,
+    creditAmount: 0,
+    debitAmount: 0,
+    latestAt: null,
+  };
+
+  records.forEach(record => {
+    const type = String(record.transactionType || '').toUpperCase();
+    const amount = amountOfTransaction(record);
+    if (type === 'CREDIT') {
+      summary.creditCount += 1;
+      summary.creditAmount += amount;
+    } else if (type === 'DEBIT') {
+      summary.debitCount += 1;
+      summary.debitAmount += amount;
+    }
+
+    const createdDate = new Date(record.createdAtRaw || record.createdAt);
+    if (!Number.isNaN(createdDate.getTime())) {
+      if (!summary.latestAt || createdDate > summary.latestAt) {
+        summary.latestAt = createdDate;
+      }
+    }
+  });
+
+  return summary;
+}
+
+function renderTransactionWorkspace(records) {
+  if (!records.length) {
+    return renderWorkspaceLayout({
+      title: 'Transaction Workspace',
+      subtitle: 'No transactions available for the selected criteria.',
+      bodyHtml: '<p class="result-empty">No transactions found.</p>',
+    });
+  }
+
+  const summary = summarizeTransactions(records);
+
+  const tableHtml = `
     <div class="result-table-wrap">
-      <table class="result-table">
-        <thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>
+      <table class="result-table ledger-table">
+        <thead>
+          <tr>
+            <th>Txn ID</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Route</th>
+            <th>Payment</th>
+            <th>Account Flow</th>
+            <th>Counterparty</th>
+            <th>Created</th>
+          </tr>
+        </thead>
         <tbody>
-          ${records.map(row => `
-            <tr>${columns.map(c => `<td>${escapeHtml(row[c] ?? '')}</td>`).join('')}</tr>
+          ${records.map(record => {
+            const source = record.sourceAccountId !== '-' ? `#${record.sourceAccountId}` : '-';
+            const destination = record.destinationAccountId !== '-' ? `#${record.destinationAccountId}` : (record.destinationValue !== '-' ? record.destinationValue : '-');
+            const accountFlow = `${source} → ${destination}`;
+            return `
+              <tr>
+                <td>${escapeHtml(record.id)}</td>
+                <td>${renderTransactionTypePill(record.transactionType)}</td>
+                <td>${renderStatusPill(record.status)}</td>
+                <td class="amount-cell">${escapeHtml(formatCurrency(record.amount))}</td>
+                <td>${escapeHtml(record.category || '-')}</td>
+                <td>${escapeHtml(record.transferType || '-')}</td>
+                <td>${escapeHtml(record.paymentMethod || '-')}</td>
+                <td>${escapeHtml(accountFlow)}</td>
+                <td>${escapeHtml(record.receiverName || '-')}</td>
+                <td>${escapeHtml(record.createdAt)}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  return renderWorkspaceLayout({
+    title: 'Transaction Workspace',
+    subtitle: 'Transaction ledger with operational and financial context.',
+    metrics: [
+      { label: 'Records', value: formatNumber(summary.totalCount), tone: 'neutral' },
+      { label: 'Credits', value: `${formatNumber(summary.creditCount)} (${formatCurrency(summary.creditAmount)})`, tone: 'success' },
+      { label: 'Debits', value: `${formatNumber(summary.debitCount)} (${formatCurrency(summary.debitAmount)})`, tone: 'warning' },
+      { label: 'Net Flow', value: formatCurrency(summary.creditAmount - summary.debitAmount), tone: (summary.creditAmount - summary.debitAmount) >= 0 ? 'success' : 'danger' },
+    ],
+    highlights: summary.latestAt ? [`Last activity ${summary.latestAt.toLocaleString()}`] : [],
+    bodyHtml: tableHtml,
+  });
+}
+
+function normalizeWalletTransactionRecord(item) {
+  if (!item || typeof item !== 'object') return null;
+  if (!('walletId' in item) || !('amount' in item) || !('type' in item)) return null;
+
+  return {
+    id: item.id ?? '-',
+    walletId: item.walletId ?? '-',
+    type: item.type ?? '-',
+    amount: item.amount ?? 0,
+    category: item.category ?? '-',
+    description: item.description ?? '-',
+    createdAtRaw: item.createdAt ?? null,
+    createdAt: formatDateTime(item.createdAt),
+  };
+}
+
+function extractWalletTransactionRecords(data) {
+  if (Array.isArray(data)) {
+    return data.map(normalizeWalletTransactionRecord).filter(Boolean);
+  }
+  if (data && typeof data === 'object') {
+    const single = normalizeWalletTransactionRecord(data);
+    if (single) return [single];
+    if (Array.isArray(data.content)) {
+      return data.content.map(normalizeWalletTransactionRecord).filter(Boolean);
+    }
+  }
+  return [];
+}
+
+function isWalletTransactionPage(data) {
+  return Boolean(data && typeof data === 'object' && Array.isArray(data.content) && 'totalElements' in data);
+}
+
+function walletTransactionTone(type) {
+  const normalized = String(type || '').toUpperCase();
+  if (normalized.includes('DEPOSIT') || normalized.includes('CREDIT') || normalized.includes('IN')) return 'success';
+  if (normalized.includes('WITHDRAW') || normalized.includes('DEBIT') || normalized.includes('OUT')) return 'warning';
+  return 'neutral';
+}
+
+function summarizeWalletTransactions(records) {
+  let inflow = 0;
+  let outflow = 0;
+  records.forEach(record => {
+    const amount = amountOfTransaction(record);
+    const tone = walletTransactionTone(record.type);
+    if (tone === 'success') inflow += amount;
+    if (tone === 'warning') outflow += amount;
+  });
+  return {
+    count: records.length,
+    inflow,
+    outflow,
+  };
+}
+
+function renderWalletTransactionWorkspace(records, pageMeta = null) {
+  if (!records.length) {
+    return renderWorkspaceLayout({
+      title: 'Wallet Ledger',
+      subtitle: 'No wallet transactions found for the selected range.',
+      bodyHtml: '<p class="result-empty">No wallet ledger entries found.</p>',
+    });
+  }
+
+  const summary = summarizeWalletTransactions(records);
+  const tableHtml = `
+    <div class="result-table-wrap">
+      <table class="result-table ledger-table">
+        <thead>
+          <tr>
+            <th>Entry ID</th>
+            <th>Wallet</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${records.map(record => `
+            <tr>
+              <td>${escapeHtml(record.id)}</td>
+              <td>${escapeHtml(`#${record.walletId}`)}</td>
+              <td><span class="status-pill ${walletTransactionTone(record.type)}">${escapeHtml(record.type || '-')}</span></td>
+              <td class="amount-cell">${escapeHtml(formatCurrency(record.amount))}</td>
+              <td>${escapeHtml(record.category || '-')}</td>
+              <td>${escapeHtml(record.description || '-')}</td>
+              <td>${escapeHtml(record.createdAt)}</td>
+            </tr>
           `).join('')}
         </tbody>
       </table>
     </div>
   `;
+
+  const highlights = [];
+  if (pageMeta) {
+    highlights.push(`Page ${Number(pageMeta.number ?? 0) + 1} of ${Math.max(Number(pageMeta.totalPages ?? 1), 1)}`);
+    highlights.push(`${formatNumber(pageMeta.totalElements ?? records.length)} total records`);
+  }
+
+  return renderWorkspaceLayout({
+    title: 'Wallet Ledger',
+    subtitle: 'Wallet transaction history with debit/credit visibility.',
+    metrics: [
+      { label: 'Entries', value: formatNumber(summary.count), tone: 'neutral' },
+      { label: 'Inflow', value: formatCurrency(summary.inflow), tone: 'success' },
+      { label: 'Outflow', value: formatCurrency(summary.outflow), tone: 'warning' },
+      { label: 'Net Flow', value: formatCurrency(summary.inflow - summary.outflow), tone: (summary.inflow - summary.outflow) >= 0 ? 'success' : 'danger' },
+    ],
+    highlights,
+    bodyHtml: tableHtml,
+  });
+}
+
+function normalizeUserRecord(item) {
+  if (!item || typeof item !== 'object') return null;
+  if (!('id' in item) || (!('email' in item) && !('username' in item) && !('fullName' in item))) return null;
+
+  return {
+    id: item.id ?? '-',
+    username: item.username ?? '-',
+    fullName: item.fullName ?? item.name ?? '-',
+    email: item.email ?? '-',
+    role: item.role ?? 'USER',
+    createdAt: formatDateTime(item.createdAt),
+  };
+}
+
+function extractUserRecords(data) {
+  if (Array.isArray(data)) return data.map(normalizeUserRecord).filter(Boolean);
+  if (data && typeof data === 'object') {
+    const single = normalizeUserRecord(data);
+    if (single) return [single];
+    if (Array.isArray(data.content)) return data.content.map(normalizeUserRecord).filter(Boolean);
+  }
+  return [];
+}
+
+function summarizeUsers(records) {
+  const total = records.length;
+  const adminCount = records.filter(item => String(item.role || '').toUpperCase() === 'ADMIN').length;
+  return {
+    total,
+    adminCount,
+    userCount: Math.max(total - adminCount, 0),
+  };
+}
+
+function renderUserWorkspace(records, action = 'users') {
+  if (!records.length) {
+    return renderWorkspaceLayout({
+      title: 'User Workspace',
+      subtitle: 'No user records found.',
+      bodyHtml: '<p class="result-empty">No user profiles available.</p>',
+    });
+  }
+
+  const summary = summarizeUsers(records);
+  const tableHtml = `
+    <div class="result-table-wrap">
+      <table class="result-table ledger-table">
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Username</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${records.map(record => `
+            <tr>
+              <td>${escapeHtml(record.id)}</td>
+              <td>${escapeHtml(record.username)}</td>
+              <td>${escapeHtml(record.fullName)}</td>
+              <td>${escapeHtml(record.email)}</td>
+              <td>${renderStatusPill(record.role)}</td>
+              <td>${escapeHtml(record.createdAt)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const subtitle = action === 'update-user'
+    ? 'Profile update receipt and current user snapshot.'
+    : 'User directory and role visibility.';
+
+  return renderWorkspaceLayout({
+    title: 'User Workspace',
+    subtitle,
+    metrics: [
+      { label: 'Profiles', value: formatNumber(summary.total), tone: 'neutral' },
+      { label: 'Admins', value: formatNumber(summary.adminCount), tone: 'warning' },
+      { label: 'Users', value: formatNumber(summary.userCount), tone: 'success' },
+    ],
+    bodyHtml: tableHtml,
+  });
+}
+
+function normalizeTransferRecord(item) {
+  if (!item || typeof item !== 'object') return null;
+  if (!('amount' in item) || !('transferType' in item)) return null;
+
+  const destinationAccount = item.destinationAccountId != null ? `Account #${item.destinationAccountId}` : null;
+  const destinationWallet = item.destinationWalletId != null ? `Wallet #${item.destinationWalletId}` : null;
+  const destinationValue = item.destinationValue || null;
+
+  return {
+    id: item.id ?? '-',
+    transferType: item.transferType ?? '-',
+    status: item.transferStatus ?? item.status ?? '-',
+    sourceAccountId: item.sourceAccountId ?? '-',
+    destination: destinationAccount || destinationWallet || destinationValue || '-',
+    receiverName: item.receiverName ?? '-',
+    paymentMethod: item.paymentMethod ?? '-',
+    amount: item.amount ?? 0,
+    createdAt: formatDateTime(item.createdAt),
+  };
+}
+
+function extractTransferRecords(data) {
+  if (Array.isArray(data)) return data.map(normalizeTransferRecord).filter(Boolean);
+  if (data && typeof data === 'object') {
+    const single = normalizeTransferRecord(data);
+    if (single) return [single];
+    if (Array.isArray(data.content)) return data.content.map(normalizeTransferRecord).filter(Boolean);
+  }
+  return [];
+}
+
+function renderTransferWorkspace(records) {
+  if (!records.length) {
+    return renderWorkspaceLayout({
+      title: 'Transfer Workspace',
+      subtitle: 'No transfer entries found.',
+      bodyHtml: '<p class="result-empty">No transfer records available.</p>',
+    });
+  }
+
+  const totalAmount = records.reduce((sum, item) => sum + amountOf(item.amount), 0);
+  const tableHtml = `
+    <div class="result-table-wrap">
+      <table class="result-table ledger-table">
+        <thead>
+          <tr>
+            <th>Transfer ID</th>
+            <th>Route</th>
+            <th>Status</th>
+            <th>Amount</th>
+            <th>Source Account</th>
+            <th>Destination</th>
+            <th>Receiver</th>
+            <th>Payment</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${records.map(record => `
+            <tr>
+              <td>${escapeHtml(record.id)}</td>
+              <td>${escapeHtml(record.transferType)}</td>
+              <td>${renderStatusPill(record.status)}</td>
+              <td class="amount-cell">${escapeHtml(formatCurrency(record.amount))}</td>
+              <td>${escapeHtml(record.sourceAccountId !== '-' ? `#${record.sourceAccountId}` : '-')}</td>
+              <td>${escapeHtml(record.destination)}</td>
+              <td>${escapeHtml(record.receiverName)}</td>
+              <td>${escapeHtml(record.paymentMethod)}</td>
+              <td>${escapeHtml(record.createdAt)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  return renderWorkspaceLayout({
+    title: 'Transfer Workspace',
+    subtitle: 'Transfer routing and execution receipt.',
+    metrics: [
+      { label: 'Transfers', value: formatNumber(records.length), tone: 'neutral' },
+      { label: 'Total Amount', value: formatCurrency(totalAmount), tone: 'success' },
+    ],
+    bodyHtml: tableHtml,
+  });
+}
+
+function renderTransactionTable(records) {
+  return renderTransactionWorkspace(records);
 }
 
 function renderBankAccountCards(records) {
@@ -912,12 +1378,12 @@ function renderBankAccountCards(records) {
     <div class="account-result-cards">
       ${normalizedRecords.map(account => `
         <article class="account-result-card">
-          <p><strong>Bank Account Id -</strong> ${escapeHtml(account.id ?? '-')}</p>
-          <p><strong>User Id -</strong> ${escapeHtml(account.userId ?? '-')}</p>
-          <p><strong>Bank Name -</strong> ${escapeHtml(account.bankName ?? '-')}</p>
-          <p><strong>Account Number -</strong> ${escapeHtml(account.accountNumber ?? '-')}</p>
-          <p><strong>Balance -</strong> ₹ ${escapeHtml(account.balance ?? '-')}</p>
-          <p><strong>Account Created At -</strong> ${escapeHtml(formatDateTime(account.createdAt))}</p>
+          <p><strong>Bank Account ID:</strong> ${escapeHtml(account.id ?? '-')}</p>
+          <p><strong>User ID:</strong> ${escapeHtml(account.userId ?? '-')}</p>
+          <p><strong>Bank Name:</strong> ${escapeHtml(account.bankName ?? '-')}</p>
+          <p><strong>Account Number:</strong> ${escapeHtml(account.accountNumber ?? '-')}</p>
+          <p><strong>Balance:</strong> ${escapeHtml(formatCurrency(account.balance))}</p>
+          <p><strong>Created At:</strong> ${escapeHtml(formatDateTime(account.createdAt))}</p>
         </article>
       `).join('')}
     </div>
@@ -1276,41 +1742,76 @@ function renderWalletTransferResponse(data) {
   const amount = data?.amount ?? data?.debitTransaction?.amount ?? 0;
   const transferredAt = data?.transferredAt ?? data?.creditTransaction?.createdAt ?? data?.debitTransaction?.createdAt;
 
-  return `
+  const body = `
     <div class="kv-grid">
       <div class="kv-item"><div class="kv-key">From Wallet</div><div class="kv-val">${escapeHtml(fromWalletId)}</div></div>
       <div class="kv-item"><div class="kv-key">To Wallet</div><div class="kv-val">${escapeHtml(toWalletId)}</div></div>
-      <div class="kv-item"><div class="kv-key">Amount</div><div class="kv-val">${escapeHtml(formatCurrency(amount))}</div></div>
       <div class="kv-item"><div class="kv-key">Transferred At</div><div class="kv-val">${escapeHtml(formatDateTime(transferredAt))}</div></div>
-      <div class="kv-item"><div class="kv-key">From Wallet Balance</div><div class="kv-val">${escapeHtml(formatCurrency(data?.fromWalletBalance))}</div></div>
-      <div class="kv-item"><div class="kv-key">To Wallet Balance</div><div class="kv-val">${escapeHtml(formatCurrency(data?.toWalletBalance))}</div></div>
     </div>
-    <div class="account-result-cards">
-      <article class="account-result-card">
-        <p><strong>Debit Entry ID -</strong> ${escapeHtml(data?.debitTransaction?.id ?? '-')}</p>
-        <p><strong>Wallet ID -</strong> ${escapeHtml(data?.debitTransaction?.walletId ?? '-')}</p>
-        <p><strong>Type -</strong> ${escapeHtml(data?.debitTransaction?.type ?? '-')}</p>
-        <p><strong>Amount -</strong> ${escapeHtml(formatCurrency(data?.debitTransaction?.amount))}</p>
-        <p><strong>Category -</strong> ${escapeHtml(data?.debitTransaction?.category ?? '-')}</p>
-        <p><strong>Description -</strong> ${escapeHtml(data?.debitTransaction?.description ?? '-')}</p>
-      </article>
-      <article class="account-result-card">
-        <p><strong>Credit Entry ID -</strong> ${escapeHtml(data?.creditTransaction?.id ?? '-')}</p>
-        <p><strong>Wallet ID -</strong> ${escapeHtml(data?.creditTransaction?.walletId ?? '-')}</p>
-        <p><strong>Type -</strong> ${escapeHtml(data?.creditTransaction?.type ?? '-')}</p>
-        <p><strong>Amount -</strong> ${escapeHtml(formatCurrency(data?.creditTransaction?.amount))}</p>
-        <p><strong>Category -</strong> ${escapeHtml(data?.creditTransaction?.category ?? '-')}</p>
-        <p><strong>Description -</strong> ${escapeHtml(data?.creditTransaction?.description ?? '-')}</p>
-      </article>
+    <div class="result-table-wrap">
+      <table class="result-table ledger-table">
+        <thead>
+          <tr>
+            <th>Entry</th>
+            <th>Wallet</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${escapeHtml(data?.debitTransaction?.id ?? '-')}</td>
+            <td>${escapeHtml(`#${data?.debitTransaction?.walletId ?? '-'}`)}</td>
+            <td><span class="status-pill warning">${escapeHtml(data?.debitTransaction?.type ?? 'DEBIT')}</span></td>
+            <td class="amount-cell">${escapeHtml(formatCurrency(data?.debitTransaction?.amount))}</td>
+            <td>${escapeHtml(data?.debitTransaction?.category ?? '-')}</td>
+            <td>${escapeHtml(data?.debitTransaction?.description ?? '-')}</td>
+          </tr>
+          <tr>
+            <td>${escapeHtml(data?.creditTransaction?.id ?? '-')}</td>
+            <td>${escapeHtml(`#${data?.creditTransaction?.walletId ?? '-'}`)}</td>
+            <td><span class="status-pill success">${escapeHtml(data?.creditTransaction?.type ?? 'CREDIT')}</span></td>
+            <td class="amount-cell">${escapeHtml(formatCurrency(data?.creditTransaction?.amount))}</td>
+            <td>${escapeHtml(data?.creditTransaction?.category ?? '-')}</td>
+            <td>${escapeHtml(data?.creditTransaction?.description ?? '-')}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   `;
+
+  return renderWorkspaceLayout({
+    title: 'Wallet Transfer Receipt',
+    subtitle: 'Dual-entry transfer captured with balance updates.',
+    metrics: [
+      { label: 'Transfer Amount', value: formatCurrency(amount), tone: 'neutral' },
+      { label: 'From Balance', value: formatCurrency(data?.fromWalletBalance), tone: 'warning' },
+      { label: 'To Balance', value: formatCurrency(data?.toWalletBalance), tone: 'success' },
+    ],
+    highlights: [`Route #${fromWalletId} → #${toWalletId}`],
+    bodyHtml: body,
+  });
 }
 
-function renderResult(data) {
+function renderResult(data, action = 'request', statusCode = 200) {
+  const resultEl = currentResultEl();
   if (!resultEl) return;
+  const userActions = new Set(['update-user', 'admin-users', 'admin-create-user', 'admin-update-user']);
+  const transferActions = new Set(['transfer-funds']);
 
   if (isReportOverview(data)) {
-    resultEl.innerHTML = renderOverview(data);
+    resultEl.innerHTML = renderWorkspaceLayout({
+      title: 'Report Workspace',
+      subtitle: 'Comprehensive analytics overview for financial decision-making.',
+      bodyHtml: renderOverview(data),
+      metrics: [
+        { label: 'Bank Accounts', value: formatNumber(Array.isArray(data.bankBalances) ? data.bankBalances.length : 0), tone: 'neutral' },
+        { label: 'Wallets', value: formatNumber(Array.isArray(data.walletBalances) ? data.walletBalances.length : 0), tone: 'success' },
+        { label: 'Monthly Points', value: formatNumber(Array.isArray(data.monthlyExpenses) ? data.monthlyExpenses.length : 0), tone: 'warning' },
+      ],
+    });
     return;
   }
 
@@ -1319,36 +1820,104 @@ function renderResult(data) {
     return;
   }
 
+  if (transferActions.has(action)) {
+    const transferRecords = extractTransferRecords(data);
+    if (transferRecords.length) {
+      resultEl.innerHTML = renderTransferWorkspace(transferRecords);
+      return;
+    }
+  }
+
+  if (userActions.has(action)) {
+    const userRecords = extractUserRecords(data);
+    if (userRecords.length) {
+      resultEl.innerHTML = renderUserWorkspace(userRecords, action);
+      return;
+    }
+  }
+
   const extractedTransactions = extractTransactionRecords(data);
   if (extractedTransactions.length) {
     resultEl.innerHTML = renderTransactionTable(extractedTransactions);
     return;
   }
 
+  const extractedWalletTransactions = extractWalletTransactionRecords(data);
+  if (extractedWalletTransactions.length) {
+    resultEl.innerHTML = renderWalletTransactionWorkspace(
+      extractedWalletTransactions,
+      isWalletTransactionPage(data) ? data : null
+    );
+    return;
+  }
+
   const extractedAccounts = extractBankAccountRecords(data);
   if (extractedAccounts.length) {
-    resultEl.innerHTML = renderBankAccountCards(extractedAccounts);
+    resultEl.innerHTML = renderWorkspaceLayout({
+      title: 'Bank Accounts',
+      subtitle: 'Account balances and ownership details.',
+      bodyHtml: renderBankAccountCards(extractedAccounts),
+      metrics: [
+        { label: 'Accounts', value: formatNumber(extractedAccounts.length), tone: 'neutral' },
+        { label: 'Total Balance', value: formatCurrency(extractedAccounts.reduce((sum, item) => sum + amountOf(item.balance), 0)), tone: 'success' },
+      ],
+    });
     return;
   }
 
   if (!Array.isArray(data) && isBankAccountRecord(data)) {
-    resultEl.innerHTML = renderBankAccountCards([data]);
+    resultEl.innerHTML = renderWorkspaceLayout({
+      title: 'Bank Account',
+      subtitle: 'Account detail snapshot.',
+      bodyHtml: renderBankAccountCards([data]),
+      metrics: [{ label: 'Balance', value: formatCurrency(data.balance), tone: 'success' }],
+    });
+    return;
+  }
+
+  const extractedUsers = extractUserRecords(data);
+  if (extractedUsers.length) {
+    resultEl.innerHTML = renderUserWorkspace(extractedUsers, action);
     return;
   }
 
   const extractedWallets = extractWalletRecords(data);
   if (extractedWallets.length) {
-    resultEl.innerHTML = renderWalletCards(extractedWallets);
+    resultEl.innerHTML = renderWorkspaceLayout({
+      title: 'Wallets',
+      subtitle: 'Wallet list with live balances.',
+      bodyHtml: renderWalletCards(extractedWallets),
+      metrics: [
+        { label: 'Wallets', value: formatNumber(extractedWallets.length), tone: 'neutral' },
+        { label: 'Total Wallet Balance', value: formatCurrency(extractedWallets.reduce((sum, item) => sum + amountOf(item.balance), 0)), tone: 'success' },
+      ],
+    });
     return;
   }
 
   if (data && typeof data === 'object' && Array.isArray(data.content)) {
-    resultEl.innerHTML = renderTable(data.content);
+    resultEl.innerHTML = renderWorkspaceLayout({
+      title: 'Paginated Result',
+      subtitle: 'Structured response with paging metadata.',
+      bodyHtml: renderTable(data.content),
+      highlights: [
+        `Page ${Number(data.number ?? 0) + 1} of ${Math.max(Number(data.totalPages ?? 1), 1)}`,
+        `${formatNumber(data.totalElements ?? data.content.length)} total records`,
+      ],
+    });
     return;
   }
 
   const body = Array.isArray(data) ? renderTable(data) : renderKeyValue(data);
-  resultEl.innerHTML = body;
+  const isError = statusCode >= 400;
+  resultEl.innerHTML = renderWorkspaceLayout({
+    title: isError ? 'Operation Error' : humanizeKey(action || 'Result'),
+    subtitle: isError ? 'Request failed. Review the details and retry.' : 'Operation result details.',
+    bodyHtml: body,
+    metrics: Array.isArray(data)
+      ? [{ label: 'Records', value: formatNumber(data.length), tone: 'neutral' }]
+      : [{ label: 'Fields', value: formatNumber(Object.keys(data || {}).length), tone: isError ? 'danger' : 'neutral' }],
+  });
 }
 
 async function api(path, options = {}, action = 'request', config = {}) {
@@ -1400,7 +1969,7 @@ async function api(path, options = {}, action = 'request', config = {}) {
       toast.error(message);
     }
     if (renderResponse) {
-      renderResult(data);
+      renderResult(data, action, response.status);
     }
     if (responseDrawerEl) responseDrawerEl.open = true;
     if (response.status === 401) {
@@ -1417,7 +1986,7 @@ async function api(path, options = {}, action = 'request', config = {}) {
     toast.success(`✅ ${successMessage}`);
   }
   if (renderResponse) {
-    renderResult(data);
+    renderResult(data, action, response.status);
   }
   return data;
 }
@@ -1597,6 +2166,34 @@ async function handleAction(action) {
           description: val('tx-expense-description'),
         }),
       });
+
+    case 'clear-tx-filters':
+      clearFieldValues([
+        'tx-filter-fromDate',
+        'tx-filter-toDate',
+        'tx-filter-transactionType',
+        'tx-filter-minAmount',
+        'tx-filter-maxAmount',
+        'tx-filter-status',
+        'tx-filter-category',
+        'tx-filter-paymentMethod',
+        'tx-filter-accountId',
+        'tx-filter-receiver',
+      ]);
+      setStatus('Transaction filters cleared', true);
+      const resultEl = currentResultEl();
+      if (resultEl) {
+        resultEl.innerHTML = renderWorkspaceLayout({
+          title: 'Filters Reset',
+          subtitle: 'Transaction history filters were cleared.',
+          bodyHtml: '<p class="result-empty">Set new criteria and load history again.</p>',
+          metrics: [{ label: 'Updated', value: 'All filter inputs reset', tone: 'success' }],
+        });
+      }
+      return {
+        message: 'Transaction filters cleared',
+        status: 200,
+      };
 
     case 'list-transactions':
     {
@@ -1832,17 +2429,8 @@ if (logoutButton) {
 
 bootstrapSession();
 function reportPath(path) {
-  const userId = reportUserId();
-  const adminPathMap = {
-    '/bank-balances': `/reports/users/${userId}/bank-balances`,
-    '/monthly-expenses': `/reports/users/${userId}/expenses/monthly`,
-    '/expense-by-category': `/reports/users/${userId}/expenses/by-category`,
-    '/income-expense-summary': `/reports/users/${userId}/summary`,
-    '/overview': `/reports/users/${userId}/overview`,
-  };
-
   if (isAdmin()) {
-    return adminPathMap[path] || `/reports${path}?userId=${userId}`;
+    return `/reports${path}?userId=${reportUserId()}`;
   }
 
   return `/reports${path}`;
