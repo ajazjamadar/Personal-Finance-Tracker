@@ -2420,6 +2420,175 @@ body.page-reports .result-box {
   gap: 14px;
 }
 
+.admin-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-chart-card {
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: rgba(11, 19, 36, 0.72);
+  display: grid;
+  gap: 0.7rem;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.admin-chart-card h4 {
+  margin: 0;
+  font-size: 0.96rem;
+}
+
+.admin-chart-subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.admin-chart-body {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+}
+
+.admin-chart-circle {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  border: 1px solid rgba(132, 173, 255, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.admin-chart-donut {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.admin-chart-donut::before {
+  content: '';
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  background: rgba(8, 14, 28, 0.95);
+  border: 1px solid rgba(132, 173, 255, 0.18);
+}
+
+.admin-chart-donut-center {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  text-align: center;
+  gap: 0.2rem;
+}
+
+.admin-chart-donut-center span {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.admin-chart-donut-center strong {
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.admin-chart-legend {
+  display: grid;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.admin-chart-legend-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 0.45rem;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.admin-chart-legend-item .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--swatch);
+}
+
+.admin-chart-legend-item .label {
+  color: var(--text);
+}
+
+.admin-chart-legend-item .value {
+  color: var(--muted-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-chart-legend-item .percent {
+  color: var(--muted);
+  min-width: 44px;
+  text-align: right;
+}
+
+.admin-compare-chart {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.admin-compare-row {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.admin-compare-row p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted-strong);
+  font-weight: 700;
+}
+
+.admin-compare-bars {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem 0.6rem;
+  align-items: center;
+}
+
+.admin-compare-track {
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(132, 173, 255, 0.16);
+  border: 1px solid rgba(132, 173, 255, 0.18);
+  overflow: hidden;
+}
+
+.admin-compare-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.admin-compare-fill.today {
+  background: linear-gradient(90deg, #4c88ff 0%, #2d63f0 100%);
+}
+
+.admin-compare-fill.month {
+  background: linear-gradient(90deg, #1fc3b2 0%, #0f9f90 100%);
+}
+
+.admin-compare-bars span {
+  color: var(--text);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-compare-key {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.74rem;
+}
+
 .snapshot-card,
 .health-card {
   padding: 1rem;
@@ -2680,6 +2849,7 @@ body.page-reports .result-box {
 @media (max-width: 940px) {
   .admin-dashboard-layout,
   .admin-alert-grid,
+  .admin-charts-grid,
   .admin-metric-grid,
   .admin-snapshot-grid,
   .admin-health-grid {
@@ -2818,6 +2988,7 @@ body.page-reports .result-box {
   .report-charts-grid,
   .admin-dashboard-layout,
   .admin-alert-grid,
+  .admin-charts-grid,
   .admin-metric-grid,
   .admin-snapshot-grid,
   .admin-health-grid,

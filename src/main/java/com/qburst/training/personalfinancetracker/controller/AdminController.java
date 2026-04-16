@@ -9,7 +9,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -36,6 +40,34 @@ public class AdminController {
     public ResponseEntity<AdminDashboardDto.Response> dashboard() {
         return ResponseEntity.ok(adminService.getDashboard());
     }
+
+        @GetMapping("/performance/monthly")
+        @Operation(summary = "Get admin monthly performance for a specific month")
+        public ResponseEntity<AdminDashboardDto.MonthlyPerformance> monthlyPerformance(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer year,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer month) {
+        return ResponseEntity.ok(adminService.getMonthlyPerformance(year, month));
+        }
+
+        @GetMapping("/performance/monthly/export")
+        @Operation(summary = "Export admin monthly performance")
+        public ResponseEntity<byte[]> exportMonthlyPerformance(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer year,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer month,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "csv") String format) {
+        String normalizedFormat = normalizeFormat(format);
+        byte[] payload = "pdf".equals(normalizedFormat)
+            ? adminService.exportMonthlyPerformancePdf(year, month)
+            : adminService.exportMonthlyPerformanceCsv(year, month);
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                .filename("admin-monthly-performance." + normalizedFormat)
+                .build()
+                .toString())
+            .contentType("pdf".equals(normalizedFormat) ? MediaType.APPLICATION_PDF : MediaType.valueOf("text/csv"))
+            .body(payload);
+        }
 
     @GetMapping("/users")
     @Operation(summary = "Get all users")
@@ -73,5 +105,13 @@ public class AdminController {
     @Operation(summary = "Get recent activities")
     public ResponseEntity<List<TransactionDto.Response>> listActivities() {
         return ResponseEntity.ok(adminService.getRecentActivities());
+    }
+
+    private String normalizeFormat(String format) {
+        String normalized = format == null ? "csv" : format.trim().toLowerCase(Locale.ROOT);
+        if (!"csv".equals(normalized) && !"pdf".equals(normalized)) {
+            throw new IllegalArgumentException("Unsupported format. Use csv or pdf");
+        }
+        return normalized;
     }
 }

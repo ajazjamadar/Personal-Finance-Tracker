@@ -9,6 +9,9 @@ import java.util.List;
 
 public interface AdminService {
     AdminDashboardDto.Response getDashboard();
+    AdminDashboardDto.MonthlyPerformance getMonthlyPerformance(Integer year, Integer month);
+    byte[] exportMonthlyPerformanceCsv(Integer year, Integer month);
+    byte[] exportMonthlyPerformancePdf(Integer year, Integer month);
     List<UserDto.Response> getAllUsers();
     UserDto.Response createUser(UserDto.Request request);
     UserDto.Response updateUser(Long id, UserDto.AdminUpdateRequest request);

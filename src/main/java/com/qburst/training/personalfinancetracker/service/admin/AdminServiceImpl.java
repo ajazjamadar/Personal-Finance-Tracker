@@ -20,6 +20,7 @@ import com.qburst.training.personalfinancetracker.repository.UserRepository;
 import com.qburst.training.personalfinancetracker.repository.WalletRepository;
 import com.qburst.training.personalfinancetracker.repository.WalletTransactionRepository;
 import com.qburst.training.personalfinancetracker.service.transaction.TransactionService;
+import com.qburst.training.personalfinancetracker.util.ExportDocumentBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
@@ -169,6 +173,117 @@ public class AdminServiceImpl implements AdminService {
                         SUSPICIOUS_WALLET_TRANSACTION_THRESHOLD),
                 now
         );
+    }
+
+    @Override
+    public AdminDashboardDto.MonthlyPerformance getMonthlyPerformance(Integer year, Integer month) {
+        YearMonth yearMonth = resolveYearMonth(year, month);
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+        LocalDateTime startInclusive = startDate.atStartOfDay();
+        LocalDateTime endExclusive = endDate.plusDays(1).atStartOfDay();
+
+        long transactions = transactionRepository.countByCreatedAtBetween(startInclusive, endExclusive);
+        long walletTransactions = walletTransactionRepository.countByCreatedAtBetween(startInclusive, endExclusive);
+        long transfers = transactionRepository.countByTransactionTypeAndCreatedAtBetween(
+                Transaction.TransactionType.TRANSFER,
+                startInclusive,
+                endExclusive
+        );
+        long newUsers = userRepository.countByCreatedAtBetween(startInclusive, endExclusive);
+        long failedTransactions = transactionRepository.countByStatusAndCreatedAtBetween(
+                Transaction.TransactionStatus.FAILED,
+                startInclusive,
+                endExclusive
+        );
+        long pendingTransfers = transactionRepository.countByTransactionTypeAndStatusInAndCreatedAtBetween(
+                Transaction.TransactionType.TRANSFER,
+                PENDING_TRANSFER_STATUSES,
+                startInclusive,
+                endExclusive
+        );
+
+        BigDecimal income = transactionRepository.sumAmountByTransactionTypeAndStatusesAndCreatedAtBetween(
+                Transaction.TransactionType.INCOME,
+                Set.of(Transaction.TransactionStatus.SUCCESS),
+                startInclusive,
+                endExclusive
+        );
+
+        BigDecimal expense = transactionRepository.sumAmountByTransactionTypesAndStatusAndCreatedAtBetween(
+                List.of(Transaction.TransactionType.EXPENSE, Transaction.TransactionType.TRANSFER),
+                Transaction.TransactionStatus.SUCCESS,
+                startInclusive,
+                endExclusive
+        );
+
+        BigDecimal transferVolume = transactionRepository.sumAmountByTransactionTypeAndStatusesAndCreatedAtBetween(
+                Transaction.TransactionType.TRANSFER,
+                ACTIVE_TRANSFER_STATUSES,
+                startInclusive,
+                endExclusive
+        );
+
+        return new AdminDashboardDto.MonthlyPerformance(
+                yearMonth.getYear(),
+                yearMonth.getMonthValue(),
+                startDate,
+                endDate,
+                transactions,
+                walletTransactions,
+                transfers,
+                newUsers,
+                failedTransactions,
+                pendingTransfers,
+                income,
+                expense,
+                transferVolume,
+                income.subtract(expense),
+                LocalDateTime.now()
+        );
+    }
+
+    @Override
+    public byte[] exportMonthlyPerformanceCsv(Integer year, Integer month) {
+        AdminDashboardDto.MonthlyPerformance performance = getMonthlyPerformance(year, month);
+        List<List<String>> rows = List.of(
+                List.of("Month", performance.year() + "-" + String.format("%02d", performance.month())),
+                List.of("Range", performance.startDate() + " to " + performance.endDate()),
+                List.of("Transactions", String.valueOf(performance.transactions())),
+                List.of("Wallet Transactions", String.valueOf(performance.walletTransactions())),
+                List.of("Transfers", String.valueOf(performance.transfers())),
+                List.of("New Users", String.valueOf(performance.newUsers())),
+                List.of("Failed Transactions", String.valueOf(performance.failedTransactions())),
+                List.of("Pending Transfers", String.valueOf(performance.pendingTransfers())),
+                List.of("Income", safeAmount(performance.income())),
+                List.of("Expense", safeAmount(performance.expense())),
+                List.of("Transfer Volume", safeAmount(performance.transferVolume())),
+                List.of("Net Flow", safeAmount(performance.netFlow())),
+                List.of("Generated At", formatDateTime(performance.generatedAt()))
+        );
+
+        return ExportDocumentBuilder.toCsv(List.of("Metric", "Value"), rows);
+    }
+
+    @Override
+    public byte[] exportMonthlyPerformancePdf(Integer year, Integer month) {
+        AdminDashboardDto.MonthlyPerformance performance = getMonthlyPerformance(year, month);
+        List<String> lines = new ArrayList<>();
+        lines.add("Month: " + performance.year() + "-" + String.format("%02d", performance.month()));
+        lines.add("Range: " + performance.startDate() + " to " + performance.endDate());
+        lines.add("Transactions: " + performance.transactions());
+        lines.add("Wallet Transactions: " + performance.walletTransactions());
+        lines.add("Transfers: " + performance.transfers());
+        lines.add("New Users: " + performance.newUsers());
+        lines.add("Failed Transactions: " + performance.failedTransactions());
+        lines.add("Pending Transfers: " + performance.pendingTransfers());
+        lines.add("Income: " + safeAmount(performance.income()));
+        lines.add("Expense: " + safeAmount(performance.expense()));
+        lines.add("Transfer Volume: " + safeAmount(performance.transferVolume()));
+        lines.add("Net Flow: " + safeAmount(performance.netFlow()));
+        lines.add("Generated At: " + formatDateTime(performance.generatedAt()));
+
+        return ExportDocumentBuilder.toSimplePdf("Admin Monthly Performance", lines);
     }
 
     @Override
@@ -368,4 +483,25 @@ public class AdminServiceImpl implements AdminService {
                 wallet.getCreatedAt()
         );
     }
+
+        private YearMonth resolveYearMonth(Integer year, Integer month) {
+                LocalDate now = LocalDate.now();
+                int effectiveYear = year == null ? now.getYear() : year;
+                int effectiveMonth = month == null ? now.getMonthValue() : month;
+                if (effectiveMonth < 1 || effectiveMonth > 12) {
+                        throw new IllegalArgumentException("Month must be between 1 and 12");
+                }
+                return YearMonth.of(effectiveYear, effectiveMonth);
+        }
+
+        private String safeAmount(BigDecimal amount) {
+                return amount == null ? "0" : amount.toPlainString();
+        }
+
+        private String formatDateTime(LocalDateTime value) {
+                if (value == null) {
+                        return "-";
+                }
+                return value.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        }
 }

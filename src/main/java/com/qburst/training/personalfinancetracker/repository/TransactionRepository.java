@@ -42,9 +42,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
     long countByTransactionTypeAndCreatedAtBetween(Transaction.TransactionType transactionType,
                                                    LocalDateTime startInclusive,
                                                    LocalDateTime endExclusive);
+    long countByStatusAndCreatedAtBetween(Transaction.TransactionStatus status,
+                        LocalDateTime startInclusive,
+                        LocalDateTime endExclusive);
     long countByStatus(Transaction.TransactionStatus status);
     long countByTransactionTypeAndStatusIn(Transaction.TransactionType transactionType,
                                            Collection<Transaction.TransactionStatus> statuses);
+    long countByTransactionTypeAndStatusInAndCreatedAtBetween(Transaction.TransactionType transactionType,
+                                  Collection<Transaction.TransactionStatus> statuses,
+                                  LocalDateTime startInclusive,
+                                  LocalDateTime endExclusive);
 
     @Query("""
             select coalesce(sum(t.amount), 0)
@@ -54,6 +61,34 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
             """)
     BigDecimal sumAmountByTransactionTypeAndStatuses(@Param("transactionType") Transaction.TransactionType transactionType,
                                                      @Param("statuses") Collection<Transaction.TransactionStatus> statuses);
+
+        @Query("""
+          select coalesce(sum(t.amount), 0)
+          from Transaction t
+          where t.transactionType = :transactionType
+            and t.status in :statuses
+            and t.createdAt >= :startInclusive
+            and t.createdAt < :endExclusive
+          """)
+        BigDecimal sumAmountByTransactionTypeAndStatusesAndCreatedAtBetween(
+          @Param("transactionType") Transaction.TransactionType transactionType,
+          @Param("statuses") Collection<Transaction.TransactionStatus> statuses,
+          @Param("startInclusive") LocalDateTime startInclusive,
+          @Param("endExclusive") LocalDateTime endExclusive);
+
+        @Query("""
+          select coalesce(sum(t.amount), 0)
+          from Transaction t
+          where t.transactionType in :transactionTypes
+            and t.status = :status
+            and t.createdAt >= :startInclusive
+            and t.createdAt < :endExclusive
+          """)
+        BigDecimal sumAmountByTransactionTypesAndStatusAndCreatedAtBetween(
+          @Param("transactionTypes") Collection<Transaction.TransactionType> transactionTypes,
+          @Param("status") Transaction.TransactionStatus status,
+          @Param("startInclusive") LocalDateTime startInclusive,
+          @Param("endExclusive") LocalDateTime endExclusive);
 
     @Query("""
             select function('year', t.createdAt) as yearValue,

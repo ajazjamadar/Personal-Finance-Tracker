@@ -1,6 +1,7 @@
 package com.qburst.training.personalfinancetracker.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -133,5 +134,23 @@ public class AdminDashboardDto {
             BigDecimal balance,
             String currency,
             LocalDateTime createdAt
+    ) {}
+
+    public record MonthlyPerformance(
+            int year,
+            int month,
+            LocalDate startDate,
+            LocalDate endDate,
+            long transactions,
+            long walletTransactions,
+            long transfers,
+            long newUsers,
+            long failedTransactions,
+            long pendingTransfers,
+            BigDecimal income,
+            BigDecimal expense,
+            BigDecimal transferVolume,
+            BigDecimal netFlow,
+            LocalDateTime generatedAt
     ) {}
 }

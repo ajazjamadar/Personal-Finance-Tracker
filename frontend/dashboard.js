@@ -42,6 +42,7 @@ const adminDashboardUpdatedAtEl = document.getElementById('adminDashboardUpdated
 const adminMetricGridEl = document.getElementById('adminMetricGrid');
 const adminSnapshotGridEl = document.getElementById('adminSnapshotGrid');
 const adminHealthGridEl = document.getElementById('adminHealthGrid');
+const adminChartsGridEl = document.getElementById('adminChartsGrid');
 const adminRecentTransactionsEl = document.getElementById('adminRecentTransactions');
 const adminRecentUsersEl = document.getElementById('adminRecentUsers');
 const adminRecentTransfersEl = document.getElementById('adminRecentTransfers');
@@ -82,6 +83,10 @@ const actionFeedback = {
   'report-category-expense': { success: 'Category report generated', error: 'Failed to generate category report' },
   'report-summary': { success: 'Income/expense summary generated', error: 'Failed to generate income/expense summary' },
   'report-overview': { success: 'Financial overview generated', error: 'Failed to generate financial overview' },
+  'report-bank-statement-csv': { success: 'Bank statement CSV downloaded', error: 'Failed to download bank statement CSV' },
+  'report-bank-statement-pdf': { success: 'Bank statement PDF downloaded', error: 'Failed to download bank statement PDF' },
+  'report-overview-csv': { success: 'Overall report CSV downloaded', error: 'Failed to download overall report CSV' },
+  'report-overview-pdf': { success: 'Overall report PDF downloaded', error: 'Failed to download overall report PDF' },
   'create-wallet': { success: 'Wallet created successfully', error: 'Failed to create wallet' },
   'list-wallets': { success: 'Wallets loaded successfully', error: 'Failed to list wallets' },
   'get-wallet': { success: 'Wallet loaded successfully', error: 'Failed to load wallet' },
@@ -95,6 +100,8 @@ const actionFeedback = {
   'admin-update-user': { success: 'User profile updated successfully', error: 'Failed to update user profile' },
   'admin-accounts': { success: 'Admin accounts loaded', error: 'Failed to load admin accounts' },
   'admin-update-account': { success: 'User bank account updated successfully', error: 'Failed to update user bank account' },
+  'admin-monthly-performance-csv': { success: 'Monthly performance CSV downloaded', error: 'Failed to download monthly performance CSV' },
+  'admin-monthly-performance-pdf': { success: 'Monthly performance PDF downloaded', error: 'Failed to download monthly performance PDF' },
 };
 
 function getSuccessMessage(action, data) {
@@ -249,6 +256,26 @@ function applyRoleDefaults() {
   }
 
   if (isAdmin()) {
+    const path = window.location.pathname;
+    if (path.endsWith('/users.html')) {
+      window.location.href = 'admin-users.html';
+      return;
+    }
+    if (path.endsWith('/accounts.html')) {
+      window.location.href = 'admin-accounts.html';
+      return;
+    }
+    if (
+      path.endsWith('/reports.html') ||
+      path.endsWith('/transactions.html') ||
+      path.endsWith('/transfers.html') ||
+      path.endsWith('/wallets.html') ||
+      path.endsWith('/wallet-transactions.html')
+    ) {
+      window.location.href = 'admin-dashboard.html';
+      return;
+    }
+
     document.querySelectorAll('.user-only-nav').forEach(link => {
       link.hidden = true;
     });
@@ -264,15 +291,6 @@ function applyRoleDefaults() {
       accountsLeadEl.textContent = 'View all accounts and update user bank accounts in the admin workspace.';
     }
 
-    const path = window.location.pathname;
-    if (
-      path.endsWith('/transactions.html') ||
-      path.endsWith('/transfers.html') ||
-      path.endsWith('/wallets.html') ||
-      path.endsWith('/wallet-transactions.html')
-    ) {
-      window.location.href = 'users.html';
-    }
     return;
   }
 
@@ -728,6 +746,173 @@ function renderAdminHealth(health) {
   `).join('');
 }
 
+function renderAdminChartLegend(series, formatter = formatNumber) {
+  const total = series.reduce((sum, item) => sum + amountOf(item.value), 0);
+  return `
+    <div class="admin-chart-legend">
+      ${series.map((item, index) => {
+        const value = amountOf(item.value);
+        const percent = total > 0 ? (value / total) * 100 : 0;
+        return `
+          <div class="admin-chart-legend-item">
+            <span class="swatch" style="--swatch:${reportPalette(index)};"></span>
+            <span class="label">${escapeHtml(item.label)}</span>
+            <span class="value">${escapeHtml(formatter(value))}</span>
+            <span class="percent">${escapeHtml(percent.toFixed(1))}%</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderAdminDonutCard({ title, subtitle, series, formatter = formatNumber }) {
+  const normalized = (Array.isArray(series) ? series : [])
+    .map(item => ({ label: item.label || 'Item', value: amountOf(item.value) }))
+    .filter(item => item.value > 0);
+
+  if (!normalized.length) {
+    return `
+      <article class="admin-chart-card">
+        <h4>${escapeHtml(title)}</h4>
+        <p class="admin-chart-subtitle">${escapeHtml(subtitle)}</p>
+        ${dashboardEmpty('No activity data available for this chart.')}
+      </article>
+    `;
+  }
+
+  const total = normalized.reduce((sum, item) => sum + item.value, 0);
+
+  return `
+    <article class="admin-chart-card">
+      <h4>${escapeHtml(title)}</h4>
+      <p class="admin-chart-subtitle">${escapeHtml(subtitle)}</p>
+      <div class="admin-chart-body">
+        <div class="admin-chart-circle admin-chart-donut" style="background: conic-gradient(${buildConicGradient(normalized)});">
+          <div class="admin-chart-donut-center">
+            <span>Total</span>
+            <strong>${escapeHtml(formatter(total))}</strong>
+          </div>
+        </div>
+        ${renderAdminChartLegend(normalized, formatter)}
+      </div>
+    </article>
+  `;
+}
+
+function renderAdminComparisonCard({ title, subtitle, rows }) {
+  const normalizedRows = (Array.isArray(rows) ? rows : [])
+    .map(item => ({
+      label: item.label || 'Metric',
+      today: amountOf(item.today),
+      month: amountOf(item.month),
+    }));
+
+  if (!normalizedRows.length) {
+    return `
+      <article class="admin-chart-card">
+        <h4>${escapeHtml(title)}</h4>
+        <p class="admin-chart-subtitle">${escapeHtml(subtitle)}</p>
+        ${dashboardEmpty('No comparison data available.')}
+      </article>
+    `;
+  }
+
+  const maxValue = Math.max(
+    ...normalizedRows.flatMap(item => [item.today, item.month]),
+    1,
+  );
+
+  return `
+    <article class="admin-chart-card">
+      <h4>${escapeHtml(title)}</h4>
+      <p class="admin-chart-subtitle">${escapeHtml(subtitle)}</p>
+      <div class="admin-compare-chart">
+        ${normalizedRows.map(item => {
+          const todayWidth = ((item.today / maxValue) * 100).toFixed(2);
+          const monthWidth = ((item.month / maxValue) * 100).toFixed(2);
+          return `
+            <div class="admin-compare-row">
+              <p>${escapeHtml(item.label)}</p>
+              <div class="admin-compare-bars">
+                <div class="admin-compare-track">
+                  <div class="admin-compare-fill today" style="width:${todayWidth}%;"></div>
+                </div>
+                <span>${escapeHtml(formatNumber(item.today))}</span>
+                <div class="admin-compare-track">
+                  <div class="admin-compare-fill month" style="width:${monthWidth}%;"></div>
+                </div>
+                <span>${escapeHtml(formatNumber(item.month))}</span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <p class="admin-compare-key">Today vs This Month</p>
+    </article>
+  `;
+}
+
+function renderAdminCharts(data) {
+  if (!adminChartsGridEl || !data) return;
+
+  const keyMetrics = data.keyMetrics || {};
+  const today = data.snapshot?.today || {};
+  const thisMonth = data.snapshot?.thisMonth || {};
+  const alerts = data.alerts || {};
+
+  const totalBankAccounts = amountOf(keyMetrics.totalBankAccounts ?? keyMetrics.totalAccounts ?? 0);
+  const totalWallets = amountOf(keyMetrics.totalWallets ?? 0);
+
+  const monthActivitySeries = [
+    { label: 'Transactions', value: thisMonth.transactions },
+    { label: 'Wallet Txns', value: thisMonth.walletTransactions },
+    { label: 'Transfers', value: thisMonth.transfers },
+    { label: 'New Users', value: thisMonth.newUsers },
+  ];
+
+  const alertSeries = [
+    { label: 'Failed Transfers', value: Array.isArray(alerts.failedTransfers) ? alerts.failedTransfers.length : 0 },
+    { label: 'Low Accounts', value: Array.isArray(alerts.lowBalanceIssues) ? alerts.lowBalanceIssues.length : 0 },
+    { label: 'Low Wallets', value: Array.isArray(alerts.lowWalletBalanceIssues) ? alerts.lowWalletBalanceIssues.length : 0 },
+    { label: 'Suspicious Txns', value: Array.isArray(alerts.suspiciousTransactions) ? alerts.suspiciousTransactions.length : 0 },
+    { label: 'Suspicious Wallet Txns', value: Array.isArray(alerts.suspiciousWalletTransactions) ? alerts.suspiciousWalletTransactions.length : 0 },
+  ];
+
+  const comparisonRows = [
+    { label: 'Transactions', today: today.transactions, month: thisMonth.transactions },
+    { label: 'Wallet Transactions', today: today.walletTransactions, month: thisMonth.walletTransactions },
+    { label: 'Transfers', today: today.transfers, month: thisMonth.transfers },
+    { label: 'New Users', today: today.newUsers, month: thisMonth.newUsers },
+  ];
+
+  adminChartsGridEl.innerHTML = [
+    renderAdminDonutCard({
+      title: 'Account Distribution',
+      subtitle: 'Bank vs wallet account footprint on the platform',
+      series: [
+        { label: 'Bank Accounts', value: totalBankAccounts },
+        { label: 'Wallets', value: totalWallets },
+      ],
+    }),
+    renderAdminDonutCard({
+      title: 'Monthly Activity Mix',
+      subtitle: 'Current month operations across all user activity channels',
+      series: monthActivitySeries,
+    }),
+    renderAdminDonutCard({
+      title: 'Alert Mix',
+      subtitle: 'Distribution of active watchlist alerts',
+      series: alertSeries,
+    }),
+    renderAdminComparisonCard({
+      title: 'User Activity Trend',
+      subtitle: 'Today compared with this month totals',
+      rows: comparisonRows,
+    }),
+  ].join('');
+}
+
 function renderDashboardTable(columns, records, emptyMessage) {
   if (!Array.isArray(records) || !records.length) {
     return dashboardEmpty(emptyMessage);
@@ -893,7 +1078,7 @@ function renderAdminAlerts(alerts, thresholds) {
 }
 
 function hasAdminDashboardShell() {
-  return Boolean(adminMetricGridEl || adminSnapshotGridEl || adminHealthGridEl);
+  return Boolean(adminMetricGridEl || adminSnapshotGridEl || adminHealthGridEl || adminChartsGridEl);
 }
 
 function renderAdminDashboard(data) {
@@ -902,6 +1087,7 @@ function renderAdminDashboard(data) {
   renderAdminMetricGrid(data.keyMetrics);
   renderAdminSnapshot(data.snapshot);
   renderAdminHealth(data.systemHealth);
+  renderAdminCharts(data);
   renderRecentTransactions(data.recentActivity?.latestTransactions);
   renderRecentWalletTransactions(data.recentActivity?.latestWalletTransactions);
   renderRecentUsers(data.recentActivity?.recentUserRegistrations);
@@ -1991,6 +2177,64 @@ async function api(path, options = {}, action = 'request', config = {}) {
   return data;
 }
 
+async function apiDownload(path, action, fileName) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+
+  try {
+    const response = await fetch(`${baseUrl()}${path}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${currentToken()}`,
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      let errorPayload = null;
+      try {
+        errorPayload = await response.json();
+      } catch {
+        errorPayload = null;
+      }
+      const message = response.status === 401
+        ? 'Unauthorized or session expired. Please login again.'
+        : getErrorMessage(action, errorPayload, response.status);
+      setStatus(message, false);
+      toast.error(message);
+      if (response.status === 401) {
+        logout(workspaceLoginRoute());
+      }
+      throw new Error(message);
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = downloadUrl;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+
+    const successMessage = getSuccessMessage(action, {});
+    setStatus(successMessage, true);
+    toast.success(`✅ ${successMessage}`);
+    return { message: successMessage };
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      const message = 'Request timed out. Check backend status and try again.';
+      setStatus(message, false);
+      toast.error(message);
+      throw new Error(message);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function loadAdminDashboard(notify = false) {
   if (!hasAdminDashboardShell()) return null;
 
@@ -2286,6 +2530,50 @@ async function handleAction(action) {
     case 'report-overview':
       return run(reportPath('/overview'));
 
+    case 'report-bank-statement-csv': {
+      const fromDate = requireText('statement-from-date', 'Statement from date');
+      const toDate = requireText('statement-to-date', 'Statement to date');
+      if (fromDate > toDate) {
+        throw new Error('Statement from date cannot be later than to date');
+      }
+      return apiDownload(
+        reportPath('/bank-statement/export', { format: 'csv', fromDate, toDate }),
+        action,
+        `bank-statement-${fromDate}-to-${toDate}.csv`
+      );
+    }
+
+    case 'report-bank-statement-pdf': {
+      const fromDate = requireText('statement-from-date', 'Statement from date');
+      const toDate = requireText('statement-to-date', 'Statement to date');
+      if (fromDate > toDate) {
+        throw new Error('Statement from date cannot be later than to date');
+      }
+      return apiDownload(
+        reportPath('/bank-statement/export', { format: 'pdf', fromDate, toDate }),
+        action,
+        `bank-statement-${fromDate}-to-${toDate}.pdf`
+      );
+    }
+
+    case 'report-overview-csv': {
+      const generatedOn = new Date().toISOString().slice(0, 10);
+      return apiDownload(
+        reportPath('/overview/export', { format: 'csv' }),
+        action,
+        `overall-report-${generatedOn}.csv`
+      );
+    }
+
+    case 'report-overview-pdf': {
+      const generatedOn = new Date().toISOString().slice(0, 10);
+      return apiDownload(
+        reportPath('/overview/export', { format: 'pdf' }),
+        action,
+        `overall-report-${generatedOn}.pdf`
+      );
+    }
+
     case 'admin-users':
       return run('/admin/users');
 
@@ -2325,6 +2613,38 @@ async function handleAction(action) {
           balance: requireNumber('admin-account-balance', 'Balance'),
         }),
       });
+
+    case 'admin-monthly-performance-csv': {
+      const monthValue = requireText('admin-performance-month', 'Month');
+      const [yearRaw, monthRaw] = monthValue.split('-');
+      const year = Number(yearRaw);
+      const month = Number(monthRaw);
+      if (Number.isNaN(year) || Number.isNaN(month) || month < 1 || month > 12) {
+        throw new Error('Month must be in YYYY-MM format');
+      }
+
+      return apiDownload(
+        `/admin/performance/monthly/export?year=${year}&month=${month}&format=csv`,
+        action,
+        `admin-monthly-performance-${monthValue}.csv`
+      );
+    }
+
+    case 'admin-monthly-performance-pdf': {
+      const monthValue = requireText('admin-performance-month', 'Month');
+      const [yearRaw, monthRaw] = monthValue.split('-');
+      const year = Number(yearRaw);
+      const month = Number(monthRaw);
+      if (Number.isNaN(year) || Number.isNaN(month) || month < 1 || month > 12) {
+        throw new Error('Month must be in YYYY-MM format');
+      }
+
+      return apiDownload(
+        `/admin/performance/monthly/export?year=${year}&month=${month}&format=pdf`,
+        action,
+        `admin-monthly-performance-${monthValue}.pdf`
+      );
+    }
 
     default:
       return null;
@@ -2428,10 +2748,26 @@ if (logoutButton) {
 }
 
 bootstrapSession();
-function reportPath(path) {
+function reportPath(path, params = {}) {
+  const search = new URLSearchParams();
+
   if (isAdmin()) {
-    return `/reports${path}?userId=${reportUserId()}`;
+    search.set('userId', String(reportUserId()));
   }
 
-  return `/reports${path}`;
+  Object.entries(params).forEach(([key, value]) => {
+    if (value == null || value === '') return;
+    search.set(key, String(value));
+  });
+
+  const qs = search.toString();
+  return qs ? `/reports${path}?${qs}` : `/reports${path}`;
+}
+
+const adminPerformanceMonthEl = document.getElementById('admin-performance-month');
+if (adminPerformanceMonthEl && !adminPerformanceMonthEl.value) {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  adminPerformanceMonthEl.value = `${yyyy}-${mm}`;
 }

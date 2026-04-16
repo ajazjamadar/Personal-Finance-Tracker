@@ -84,55 +84,6 @@
       </div>
     </section>
 
-    <section id="usersAdminWorkspace" class="features" hidden>
-      <div class="container ops-grid">
-        <article class="card op-card">
-          <h3>View All Users</h3>
-          <p class="card-desc">Load all user profiles from the admin workspace.</p>
-          <button class="btn btn-secondary" data-action="admin-users" type="button">View All Users</button>
-        </article>
-
-        <article class="card op-card">
-          <h3>Create User Profile</h3>
-          <div class="form-grid">
-            <input id="admin-create-username" placeholder="Username" />
-            <input id="admin-create-email" placeholder="Email" />
-            <input id="admin-create-fullname" placeholder="Full name" />
-            <input id="admin-create-password" type="password" placeholder="Password" />
-          </div>
-          <button class="btn btn-primary" data-action="admin-create-user" type="button">Create User</button>
-        </article>
-
-        <article class="card op-card">
-          <h3>Update User Profile</h3>
-          <div class="form-grid">
-            <input id="admin-update-id" type="number" placeholder="User ID" />
-            <input id="admin-update-username" placeholder="Username" />
-            <input id="admin-update-email" placeholder="Email" />
-            <input id="admin-update-fullname" placeholder="Full name" />
-            <input id="admin-update-password" type="password" placeholder="New password (optional)" />
-            <select id="admin-update-role">
-              <option value="">Keep current role</option>
-              <option value="USER">USER</option>
-              <option value="ADMIN">ADMIN</option>
-            </select>
-          </div>
-          <button class="btn btn-primary" data-action="admin-update-user" type="button">Update User</button>
-        </article>
-
-        <article class="card op-card result-card module-result workspace-result-card">
-          <div class="workspace-head">
-            <div>
-              <p class="workspace-kicker">User Workspace</p>
-              <h3>Profile Operations</h3>
-              <p class="workspace-subtitle">User directory insights and action receipts are rendered here.</p>
-            </div>
-            <p id="statusLine" class="status-line">Ready</p>
-          </div>
-          <div id="result" class="result-box"><p class="result-empty">Run an admin user action to load the workspace.</p></div>
-        </article>
-      </div>
-    </section>
   </main>
   </div>
 
