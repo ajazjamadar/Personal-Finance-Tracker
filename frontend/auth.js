@@ -1,9 +1,14 @@
 const TOKEN_KEY = 'fintrack-token';
 const SESSION_KEY = 'fintrack-session';
 
-const API_BASE = window.location.protocol.startsWith('http')
-  ? `${window.location.protocol}//${window.location.hostname || 'localhost'}:8080/api`
-  : 'http://localhost:8080/api';
+// For production on Render, use the same origin
+// For local development, defaults to localhost:8080
+const API_BASE = (() => {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8080/api'; // Local development
+  }
+  return `${window.location.protocol}//${window.location.host}/api`; // Production (same origin)
+})();
 
 function setStatus(message, ok = true) {
   const statusEl = document.getElementById('authStatus');
