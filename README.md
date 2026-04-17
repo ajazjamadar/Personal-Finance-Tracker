@@ -468,7 +468,25 @@ Stage 2 (runtime):  eclipse-temurin:21-jre-alpine
 MySQL is exposed on host port `3307` to avoid conflicts with a locally running MySQL instance.
 
 ---
-
+Commands To Run Project 
+---
+---
+Terminal 1 (DB):
+---
+cd /home/ejaz/Documents/personal-finance-tracker
+docker compose up -d mysql
+until [ "$(docker inspect -f '{{.State.Health.Status}}' finance-mysql 2>/dev/null)" = "healthy" ]; do echo "waiting for mysql..."; sleep 2; done
+---
+Terminal 2 (backend, local Spring Boot):
+---
+cd /home/ejaz/Documents/personal-finance-tracker
+DB_HOST=localhost DB_PORT=3307 DB_NAME=finance_tracker_db DB_USERNAME=root DB_PASSWORD='Root@1234' ./mvnw -Dmaven.test.skip=true spring-boot:run
+---
+Terminal 3 (frontend):
+---
+cd /home/ejaz/Documents/personal-finance-tracker/frontend
+python3 -m http.server 5500
+---
 ## What's Next
 
 - **Test coverage** — Unit tests for service layer (JUnit 5 + Mockito) and integration tests using the H2 in-memory database already on the classpath

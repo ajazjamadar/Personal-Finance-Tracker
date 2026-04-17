@@ -102,6 +102,10 @@ const actionFeedback = {
   'admin-update-account': { success: 'User bank account updated successfully', error: 'Failed to update user bank account' },
   'admin-monthly-performance-csv': { success: 'Monthly performance CSV downloaded', error: 'Failed to download monthly performance CSV' },
   'admin-monthly-performance-pdf': { success: 'Monthly performance PDF downloaded', error: 'Failed to download monthly performance PDF' },
+  'admin-system-report-csv': { success: 'System report CSV downloaded', error: 'Failed to download system report CSV' },
+  'admin-system-report-pdf': { success: 'System report PDF downloaded', error: 'Failed to download system report PDF' },
+  'admin-transaction-report-csv': { success: 'Transaction report CSV downloaded', error: 'Failed to download transaction report CSV' },
+  'admin-transaction-report-pdf': { success: 'Transaction report PDF downloaded', error: 'Failed to download transaction report PDF' },
 };
 
 function getSuccessMessage(action, data) {
@@ -2643,6 +2647,46 @@ async function handleAction(action) {
         `/admin/performance/monthly/export?year=${year}&month=${month}&format=pdf`,
         action,
         `admin-monthly-performance-${monthValue}.pdf`
+      );
+    }
+
+    case 'admin-system-report-csv': {
+      const fromDate = requireText('admin-report-from-date', 'From date');
+      const toDate = requireText('admin-report-to-date', 'To date');
+      return apiDownload(
+        `/admin/system/export?fromDate=${fromDate}&toDate=${toDate}&format=csv`,
+        action,
+        `admin-system-report-${new Date().toISOString().split('T')[0]}.csv`
+      );
+    }
+
+    case 'admin-system-report-pdf': {
+      const fromDate = requireText('admin-report-from-date', 'From date');
+      const toDate = requireText('admin-report-to-date', 'To date');
+      return apiDownload(
+        `/admin/system/export?fromDate=${fromDate}&toDate=${toDate}&format=pdf`,
+        action,
+        `admin-system-report-${new Date().toISOString().split('T')[0]}.pdf`
+      );
+    }
+
+    case 'admin-transaction-report-csv': {
+      const fromDate = requireText('admin-report-from-date', 'From date');
+      const toDate = requireText('admin-report-to-date', 'To date');
+      return apiDownload(
+        `/admin/transactions/export?fromDate=${fromDate}&toDate=${toDate}&format=csv`,
+        action,
+        `admin-transaction-report-${new Date().toISOString().split('T')[0]}.csv`
+      );
+    }
+
+    case 'admin-transaction-report-pdf': {
+      const fromDate = requireText('admin-report-from-date', 'From date');
+      const toDate = requireText('admin-report-to-date', 'To date');
+      return apiDownload(
+        `/admin/transactions/export?fromDate=${fromDate}&toDate=${toDate}&format=pdf`,
+        action,
+        `admin-transaction-report-${new Date().toISOString().split('T')[0]}.pdf`
       );
     }
 

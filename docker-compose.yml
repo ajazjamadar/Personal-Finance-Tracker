@@ -25,13 +25,16 @@ services:
     ports:
       - "8080:8080"
     
-
     environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_NAME: ${MYSQL_DATABASE}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:local}
+      MYSQLHOST: ${MYSQLHOST:mysql}
+      MYSQLPORT: ${MYSQLPORT:3306}
+      MYSQLDATABASE: ${MYSQLDATABASE:${MYSQL_DATABASE}}
+      MYSQLUSER: ${MYSQLUSER:root}
+      MYSQLPASSWORD: ${MYSQLPASSWORD:${MYSQL_ROOT_PASSWORD}}
+      SERVER_PORT: ${SERVER_PORT:8080}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      APP_JWT_EXPIRATION_MINUTES: ${APP_JWT_EXPIRATION_MINUTES:120}
     depends_on:
       mysql:
         condition: service_healthy
