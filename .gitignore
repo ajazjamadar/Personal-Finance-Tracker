@@ -1,6 +1,12 @@
 HELP.md
-target/
+
+# Ignore unnecessary build artifacts (but NOT jar)
+target/*.log
+target/*.tmp
+
 .mvn/wrapper/maven-wrapper.jar
+
+# Allow nested target folders if needed
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -28,8 +34,8 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+
 .vscode/
 
 # Local environment secrets
 .env
-
