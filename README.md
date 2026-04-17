@@ -1,4 +1,4 @@
-# ? FinTrack ? Personal Finance Tracker
+#  FinTrack-Personal Finance Tracker
 
 > A production-grade REST API built with Spring Boot 3, featuring JWT authentication, OTP-based login, real-time fund transfers, and financial analytics ? backed by MySQL with Flyway migrations and containerised with Docker.
 
