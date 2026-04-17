@@ -1,13 +1,14 @@
 const TOKEN_KEY = 'fintrack-token';
 const SESSION_KEY = 'fintrack-session';
 
-// For production on Render, use the same origin
-// For local development, defaults to localhost:8080
+// API Base URL configuration
+// Local: localhost:8080, Production: separate Render backend service
 const API_BASE = (() => {
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'http://localhost:8080/api'; // Local development
   }
-  return `${window.location.protocol}//${window.location.host}/api`; // Production (same origin)
+  // Production: Replace with your Render backend service URL
+  return 'https://personal-finance-tracker-api.onrender.com/api'; // Production backend
 })();
 
 function setStatus(message, ok = true) {
